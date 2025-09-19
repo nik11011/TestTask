@@ -1,9 +1,7 @@
-import * as THREE from 'three'
-import {boxBlur} from "three/examples/jsm/tsl/display/boxBlur";
-import {BoxGeometry, MeshBasicMaterial} from "three";
+import * as THREE from 'three';
+import * as Player from './Player.ts';
 
-
-
+const player = new Player();
 
 const canvas = document.querySelector('.canvas');
 
@@ -19,6 +17,3 @@ renderer.render(scene, camera);
 
 
 camera.position.z = 3;
-
-const geometryPlayer = new BoxGeometry(0.5,1,0.5);
-const meshPlayer = new MeshBasicMaterial()
