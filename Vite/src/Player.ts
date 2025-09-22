@@ -10,7 +10,6 @@ class Player{
     }
 
     MoveLeft(){
-        ontouchmove()
     }
 
     MoveRight(){
