@@ -1,25 +1,30 @@
 {
   "compilerOptions": {
-    "target": "ES2022",
-    "useDefineForClassFields": true,
-    "module": "ESNext",
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "outDir": "./dist",
+    "allowJs": true,
+    "target": "ESNext", // указывает, какой стандарт JavaScript будет применяться при компиляции
+    "module": "ESNext", // Определяет тип импорта кода в итоговом файле, прописанном в "outFile". Необходимо задавать при использовании опции "outFile".
+    "lib": ["ESNext", "DOM"], // Набор библиотечных файлов полифилов, которые будут включены в итоговый выходной файл.
+    "moduleResolution": "Node", // Определить способ поиска модулей в папках: как в Node.js или классический, как в TypeScript 1.5 и ниже.
+    "strict": true, // Включить ли все строги проверки типов сразу: noImplicitAny, noImplicitThis, alwaysStrict, strictNullChecks, strictFunctionTypes, strictPropertyInitialization?
+    "strictNullChecks": false, // Значения "null" и "undefined" могут быть присвоены только значениям данного типа и значениям только с типом "any"?
+    "esModuleInterop": true, // Создать хелперы __importStar и __importDefault для обеспечения совместимости с экосистемой Babel и включить allowSyntheticDefaultImports для совместимости с системой типов.
+    "noImplicitAny": false,
+    "noUnusedLocals": true, // Показывать ошибку, если где-то найдены неиспользуемые локальные значения.
+    "noUnusedParameters": false, // Показывать ошибку, если где-то найдены неиспользуемые параметры.
+    "noImplicitReturns": true, // Сообщить об ошибке, когда не все пути кода в функции возвращают значение?
+    "declaration": true,
+    "declarationMap": false,
     "skipLibCheck": true,
-
-    /* Bundler mode */
-    "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
-    "verbatimModuleSyntax": true,
-    "moduleDetection": "force",
-    "noEmit": true,
-
-    /* Linting */
-    "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "erasableSyntaxOnly": true,
-    "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true
+    "resolveJsonModule": true,
+    "paths": {
+      "@assets/*": ["assets/*"]
+    },
+    "typeRoots": ["./node_modules/@types", "./node_modules/@furylion/troika-three-text-types"]
   },
-  "include": ["src"]
+  "include": [
+    "src/**/*",
+    "assets/**/*.json",
+    "../../src/types/global.d.ts"
+  ]
 }

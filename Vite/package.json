@@ -9,11 +9,13 @@
     "preview": "vite preview"
   },
   "devDependencies": {
+    "@types/node": "^24.5.2",
     "typescript": "~5.8.3",
     "vite": "^7.1.6"
   },
   "dependencies": {
     "@types/three": "^0.180.0",
-    "three": "^0.180.0"
+    "three": "^0.180.0",
+    "three-fbx-loader": "^1.0.3"
   }
 }
