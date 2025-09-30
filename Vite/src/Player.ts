@@ -1,18 +1,13 @@
 ﻿import * as THREE from 'three';
+import {FBXLoader} from "three/examples/jsm/loaders/FBXLoader";
 
 
-class Player{
-    geometryPlayer:THREE.BoxGeometry;
-    meshPlayer:THREE.MeshBasicMaterial;
-    constructor(geometry: THREE.BoxGeometry, mesh: THREE.MeshBasicMaterial) {
-        this.geometryPlayer = geometry;
-        this.meshPlayer = mesh;
-    }
+export class Player{
+    fbxLoader = new FBXLoader();
+    public scene: THREE.Scene;
+    public model?: THREE.Group;
 
-    MoveLeft(){
-    }
-
-    MoveRight(){
+    public CharacterControl(){
 
     }
 }
