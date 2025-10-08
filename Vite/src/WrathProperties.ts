@@ -10,24 +10,30 @@ enum interactionalWithScore{
 
 
 export class WrathInteraction{
-    constructor() {
+    private numInteraction:number;
+    private operation:interactionalWithScore;
+    wrath:Wrath;
+    constructor(_wrath:Wrath, _operation:interactionalWithScore, _numInteraction:number) {
+        this.wrath = _wrath;
+        this.operation = _operation;
+        this.numInteraction = _numInteraction;
     }
 
-    private doInteraction(Num:number,numInteraction:number, operation: interactionalWithScore,){
-        switch (operation) {
+    public doInteraction(Num:number){
+        switch (this.operation) {
             case interactionalWithScore.PLUS:
-                return Num + numInteraction;
+                return Num + this.numInteraction;
             case interactionalWithScore.MINUS:
-                return Num + numInteraction;
+                return Num - this.numInteraction;
             case interactionalWithScore.MULTIPLY:
-                return Num + numInteraction;
+                return Num * this.numInteraction;
             case interactionalWithScore.DIVIDE:
-                if (Num === 0||numInteraction===0) {
+                if (Num == 0|| this.numInteraction == 0) {
                     return 0;
                 }
                 else {
-                    return Num/numInteraction
+                    return Num/this.numInteraction;
                 }
         }
-}
+    }
 }

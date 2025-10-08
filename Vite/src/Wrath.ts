@@ -3,9 +3,10 @@ import {InteractionalObject} from "./InteractionalObject";
 import {WrathInteraction} from "./WrathProperties";
 
 export class Wrath extends InteractionalObject{
-
     interactionalZoneWrathX = 0.7;
-    private interaction = new WrathInteraction();
+    interactionalZoneWrathZ = 0.2;
+    public wrathInteraction: WrathInteraction;
+    private activatedWrath:boolean = false;
     constructor(_scene: Scene, x:number, z:number, _model: Object3D) {
         super(_scene, x, z, _model);
         this.model.rotation.y = Math.PI * -2.5;
@@ -18,15 +19,16 @@ export class Wrath extends InteractionalObject{
     OnEnterInWrath(Player:Object3D):boolean{
         if(
             Player.position.x<=this.model.position.x+this.interactionalZoneWrathX &&
-            Player.position.x>=this.model.position.x-this.interactionalZoneWrathX
+            Player.position.x>=this.model.position.x-this.interactionalZoneWrathX &&
+            Player.position.z>=this.model.position.z-this.interactionalZoneWrathZ &&
+            Player.position.z<=this.model.position.z+this.interactionalZoneWrathZ &&
+            this.activatedWrath == false
         ){
+            this.activatedWrath = true;
             return true;
         }
         else{
             return false;
         }
-    }
-    AnimationRotate(_tick){
-        this.model.rotation.y += _tick;
     }
 }

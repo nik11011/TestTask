@@ -5,7 +5,7 @@ import {CameraControls} from "./CameraControls";
 import {Coin} from "./Coin";
 import {Bomb} from "./Bomb";
 import {Wrath} from "./Wrath";
-import {TextGeometry} from "three/examples/jsm/geometries/TextGeometry";
+import {WrathInteraction} from "./WrathProperties"
 import {Object3DEventMap} from "three";
 
 //let fbxLoader = new FBXLoader();
@@ -89,6 +89,10 @@ wraths.push(
     new Wrath(scene, 0.5,-9.5,await importclass.importModel("public/Wrath.fbx"))
 );
 
+wraths[0].wrathInteraction = new WrathInteraction(wraths[0], 2, 4);
+wraths[1].wrathInteraction = new WrathInteraction(wraths[1], 0, 1);
+wraths[2].wrathInteraction = new WrathInteraction(wraths[2], 1, 2);
+wraths[3].wrathInteraction = new WrathInteraction(wraths[3], 3, 2);
 
 resizeScoreText();
 
@@ -128,25 +132,25 @@ update();
 
 //cameraControls.OnEnableControls(false);
 //cameraControls.controls.update();
-
+let sideMoveSpeed = 0.1;
 function update(){
     const imageAspect = bgTexture.image ? bgTexture.image.width / bgTexture.image.height : 1;
     const aspect = imageAspect / canvasAspect;
     NormalizeBGTexture(aspect)
     ticker += clock.getElapsedTime();
     window.requestAnimationFrame(update);
-    if(playerRun.position.z == -2) {
+    if(playerRun.position.z <= -18) {
         playerDance.position.z = playerRun.position.z;
         playerDance.position.x = playerRun.position.x;
         removeObject(playerRun);
         scene.add(playerDance);
-        playerSpeed = -0.01;
+        playerSpeed = 0;
+        sideMoveSpeed = 0;
         playerAnimationMixer = new THREE.AnimationMixer(playerDance);
         action = playerAnimationMixer.clipAction(playerDance.animations[0]);
         action.play();
     }
     else{
-        playerAnimationMixer.update(0.01);
         run(playerSpeed);
     for(let coin of coins){
         coin.AnimationRotate(0.1);
@@ -159,6 +163,13 @@ function update(){
             }
         }
     }
+    for(let wrath of wraths){
+        if(wrath.OnEnterInWrath(playerRun)){
+            player.score = wrath.wrathInteraction.doInteraction(player.score);
+            showScore(player.score);
+        }
+    }
+    playerAnimationMixer.update(0.01);
     renderer.render(scene, camera);
 }
 
@@ -201,7 +212,7 @@ window.addEventListener('touchmove', (clientTouch)=>{
         playerRun.position.x = 0;
     }
     else{
-        playerRun.position.x += touch.x * 0.1;
+        playerRun.position.x += touch.x * sideMoveSpeed;
     }
 })
 
