@@ -21,6 +21,7 @@ const player = new Player();
 let touch = {
     x: 0,
 }
+let firstTouch = false;
 
 NormalizeBGTexture(canvasAspect);
 
@@ -50,6 +51,7 @@ scene.add(platformForRun);
 platformForRun.position.y = -0.65;
 platformForRun.position.z = -8;
 camera.position.z = 1;
+camera.rotation.y = -0.055;
 camera.position.y = 0.5;
 const light = new THREE.AmbientLight('#FFFFFF', 5);
 scene.add(light);
@@ -111,7 +113,7 @@ playerDance.position.y = -0.15;
 playerDance.scale.set(0.004,0.004,0.004);
 const playerRun = await importclass.importModel("public/Running.fbx");
 playerRun.rotation.y = Math.PI * 1;
-playerRun.position.y = -0.15;
+playerRun.position.y = -0.175;
 playerRun.scale.set(0.004,0.004,0.004);
 const playerIdle = await importclass.importModel("public/Idle.fbx");
 playerIdle.rotation.y = Math.PI * -1;
@@ -165,7 +167,7 @@ function removeObject(model:THREE.Object3D){
     model.clear();
 }
 function GlueCameraTo(playerModel:THREE.Object3D<Object3DEventMap>, camera:THREE.Camera) {
-    camera.position.x = playerModel.position.x + 0.1;
+    camera.position.x = playerModel.position.x;
     camera.position.z = playerModel.position.z + 3;
     camera.position.y = playerModel.position.y + 0.5;
 }
@@ -204,9 +206,9 @@ window.addEventListener('touchmove', (clientTouch)=>{
 })
 
 window.addEventListener('touchstart',(clientTouch)=>{
-    let firstTouch = false;
-    if(firstTouch === false)
+    if(firstTouch == false)
     {
+        firstTouch = true;
         playerSpeed = -0.01;
         removeObject(playerIdle);
         scene.add(playerRun);
@@ -217,5 +219,4 @@ window.addEventListener('touchstart',(clientTouch)=>{
     else{
 
     }
-    firstTouch = true;
 })
