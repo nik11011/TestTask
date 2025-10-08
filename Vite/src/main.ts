@@ -1,39 +1,28 @@
 import * as THREE from 'three';
-import {FBXLoader} from "three/examples/jsm/loaders/FBXLoader";
-import {OrbitControls} from "three/examples/jsm/controls/OrbitControls.js";
-import {Player} from './Player'
-import {ImportClass} from "./ImportClass"
+import {Player} from './Player';
+import {ImportClass} from "./ImportClass";
+import {CameraControls} from "./CameraControls";
+import {Coin} from "./Coin";
+import {Bomb} from "./Bomb";
+import {Wrath} from "./Wrath";
+import {TextGeometry} from "three/examples/jsm/geometries/TextGeometry";
+import {Object3DEventMap} from "three";
 
 //let fbxLoader = new FBXLoader();
 
 
 const clock = new THREE.Clock();
 let ticker = 0;
-
 const canvas: Element = document.querySelector('#c');
 const loader = new THREE.TextureLoader();
 const bgTexture = loader.load('public/SkyBox.jpg')
-const canvasAspect = canvas.clientWidth / canvas.clientHeight;
-const imageAspect = bgTexture.image ? bgTexture.image.width / bgTexture.image.height : 1;
-const aspect = imageAspect / canvasAspect;
+let canvasAspect = canvas.clientWidth / canvas.clientHeight
+const player = new Player();
+let touch = {
+    x: 0,
+}
 
-
-
-
-/*const playerModel = fbxLoader.load(
-    './public/Character.fbx',
-    (fbx) => {
-        fbx.scale.set(2,2,2)
-        scene.add(fbx);
-    },
-    function(progress){
-        console.log(progress.loaded);
-    }, function ( error ) {
-        console.error(error);
-    }
-)*/
-
-NormalizeBGTexture();
+NormalizeBGTexture(canvasAspect);
 
 const renderer = new THREE.WebGLRenderer({
         canvas,
@@ -46,8 +35,6 @@ const axesHelper = new THREE.AxesHelper(3);
 const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight);
 
 
-
-const controls = CameraControls();
 
 
 const scene = new THREE.Scene();
@@ -63,125 +50,172 @@ scene.add(platformForRun);
 platformForRun.position.y = -0.65;
 platformForRun.position.z = -8;
 camera.position.z = 1;
+camera.position.y = 0.5;
 const light = new THREE.AmbientLight('#FFFFFF', 5);
 scene.add(light);
 scene.add(camera);
 scene.add(axesHelper);
-const importclass = new ImportClass(scene);
-const playerModel = await importclass.importModel("public/Character.fbx");
-playerModel.rotation.y = Math.PI * 5;
-playerModel.scale.set(2,2,2);
-playerModel.position.y = -0.15;
-scene.add(playerModel);
 
-let coin = await importclass.importModel("public/Coin_Reskin.fbx");
-coin.position.x = -0.5;
-coin.position.z = -1;
-scene.add(coin);
-let coin1 = await importclass.importModel("public/Coin_Reskin.fbx");
-coin1.position.x = -0.5;
-coin1.position.z = -2;
-scene.add(coin1);
-let coin2 = await importclass.importModel("public/Coin_Reskin.fbx");
-coin2.position.x = +0.5;
-coin2.position.z = -4;
-scene.add(coin2);
-let coin3 = await importclass.importModel("public/Coin_Reskin.fbx");
-coin3.position.x = -0.5;
-coin3.position.z = -5;
-scene.add(coin3);
-let coin4 = await importclass.importModel("public/Coin_Reskin.fbx");
-coin4.position.x = +0.5;
-coin4.position.z = -7;
-let coin5 = await importclass.importModel("public/Coin_Reskin.fbx");
-coin5.position.x = +0.5;
-coin5.position.z = -8;
-scene.add(coin5);
-let coin6 = await importclass.importModel("public/Coin_Reskin.fbx");
-coin6.position.x = -0.5;
-coin6.position.z = -9;
-scene.add(coin6);
-let coin7 = await importclass.importModel("public/Coin_Reskin.fbx");
-coin7.position.x = -0.5;
-coin7.position.z = -11;
-scene.add(coin7);
-let bomb = await importclass.importModel("public/bomb.fbx");
-bomb.position.x = -0.5;
-bomb.position.z = -7;
-bomb.position.y = -0.1;
-scene.add(bomb);
-let bomb1 = await importclass.importModel("public/bomb.fbx");
-bomb1.position.x = +0.5;
-bomb1.position.z = -1;
-bomb1.position.y = -0.1;
-scene.add(bomb1);
-let bomb2 = await importclass.importModel("public/bomb.fbx");
-bomb2.position.x = +0.5;
-bomb2.position.z = -6;
-bomb2.position.y = -0.1;
-scene.add(bomb2);
-let bomb3 = await importclass.importModel("public/bomb.fbx");
-bomb3.position.x = -0.5;
-bomb3.position.z = -8;
-bomb3.position.y = -0.1;
-scene.add(bomb3);
-
-let wrath = await importclass.importModel("public/Wrath.fbx");
-wrath.rotation.y = Math.PI * -2.5;
-wrath.position.z = -3;
-wrath.position.x = -0.5;
-wrath.scale.set(1.4,1.4,1.4);
-scene.add(wrath);
-let wrath1 = await importclass.importModel("public/Wrath.fbx");
-wrath1.rotation.y = Math.PI * -2.5;
-wrath1.position.z = -3;
-wrath1.position.x = 0.5;
-wrath1.scale.set(1.4,1.4,1.4);
-scene.add(wrath1);
-let wrath2 = await importclass.importModel("public/Wrath.fbx");
-wrath2.rotation.y = Math.PI * -2.5;
-wrath2.position.z = -9.5;
-wrath2.position.x = -0.5;
-wrath2.scale.set(1.4,1.4,1.4);
-scene.add(wrath2);
-let wrath3 = await importclass.importModel("public/Wrath.fbx");
-wrath3.rotation.y = Math.PI * -2.5;
-wrath3.position.z = -9.5;
-wrath3.position.x = 0.5;
-wrath3.scale.set(1.4,1.4,1.4);
-scene.add(wrath3);
-let groupBomb = THREE.Group;
+const importclass = new ImportClass();
+let coins = new Array<Coin>();
+coins.push(
+    new Coin(scene, -0.5, -1, await importclass.importModel("public/Coin_Reskin.fbx")),
+    new Coin(scene, -0.5, -2, await importclass.importModel("public/Coin_Reskin.fbx")),
+    new Coin(scene, +0.5, -4, await importclass.importModel("public/Coin_Reskin.fbx")),
+    new Coin(scene, -0.5, -5, await importclass.importModel("public/Coin_Reskin.fbx")),
+    new Coin(scene, +0.5, -7, await importclass.importModel("public/Coin_Reskin.fbx")),
+    new Coin(scene, +0.5, -8, await importclass.importModel("public/Coin_Reskin.fbx")),
+    new Coin(scene, -0.5, -9, await importclass.importModel("public/Coin_Reskin.fbx")),
+    new Coin(scene, -0.5, -11, await importclass.importModel("public/Coin_Reskin.fbx"))
+);
 
 
+
+let bombs = new Array<Bomb>();
+bombs.push(
+    new Bomb(scene, 0.5, -2, await importclass.importModel("public/bomb.fbx")),
+    new Bomb(scene, 0.5, -6, await importclass.importModel("public/bomb.fbx")),
+    new Bomb(scene, -0.5, -7, await importclass.importModel("public/bomb.fbx")),
+    new Bomb(scene, -0.5, -8, await importclass.importModel("public/bomb.fbx"))
+);
+
+let wraths = new Array<Wrath>();
+wraths.push(
+    new Wrath(scene, -0.5,-3,await importclass.importModel("public/Wrath.fbx")),
+    new Wrath(scene, 0.5,-3,await importclass.importModel("public/Wrath.fbx")),
+    new Wrath(scene, -0.5,-9.5,await importclass.importModel("public/Wrath.fbx")),
+    new Wrath(scene, 0.5,-9.5,await importclass.importModel("public/Wrath.fbx"))
+);
+
+
+resizeScoreText();
+
+
+window.addEventListener('resize', ()=>{
+    resizeScoreText();
+
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+
+    renderer.setSize(window.innerWidth,window.innerHeight)
+    renderer.render(scene, camera);
+})
+
+
+
+const cameraControls = new CameraControls(camera, renderer);
+
+const playerDance = await importclass.importModel("public/Dance.fbx");
+playerDance.rotation.y = Math.PI * 1;
+playerDance.position.y = -0.15;
+playerDance.scale.set(0.004,0.004,0.004);
+const playerRun = await importclass.importModel("public/Running.fbx");
+playerRun.rotation.y = Math.PI * 1;
+playerRun.position.y = -0.15;
+playerRun.scale.set(0.004,0.004,0.004);
+const playerIdle = await importclass.importModel("public/Idle.fbx");
+playerIdle.rotation.y = Math.PI * -1;
+playerIdle.scale.set(0.004,0.004,0.004);
+let playerAnimationMixer = new THREE.AnimationMixer(playerIdle);
+let action = playerAnimationMixer.clipAction(playerIdle.animations[0]);
+action.play();
+
+scene.add(playerIdle);
+let playerSpeed = 0;
 update();
 
+//cameraControls.OnEnableControls(false);
+//cameraControls.controls.update();
+
+function update(){
+    const imageAspect = bgTexture.image ? bgTexture.image.width / bgTexture.image.height : 1;
+    const aspect = imageAspect / canvasAspect;
+    NormalizeBGTexture(aspect)
+    ticker += clock.getElapsedTime();
+    window.requestAnimationFrame(update);
+    if(playerRun.position.z == -2) {
+        playerDance.position.z = playerRun.position.z;
+        playerDance.position.x = playerRun.position.x;
+        removeObject(playerRun);
+        scene.add(playerDance);
+        playerSpeed = -0.01;
+        playerAnimationMixer = new THREE.AnimationMixer(playerDance);
+        action = playerAnimationMixer.clipAction(playerDance.animations[0]);
+        action.play();
+    }
+    else{
+        playerAnimationMixer.update(0.01);
+        run(playerSpeed);
+    for(let coin of coins){
+        coin.AnimationRotate(0.1);
+        if(coin.OnTrigger(playerRun)){
+            player.score += 1;
+            showScore(player.score);
+            coin.interactionalZone = 0;
+            removeObject(coin.model);
+            resizeScoreText();
+            }
+        }
+    }
+    renderer.render(scene, camera);
+}
+
+function removeObject(model:THREE.Object3D){
+    model.remove();
+    model.clear();
+}
+function GlueCameraTo(playerModel:THREE.Object3D<Object3DEventMap>, camera:THREE.Camera) {
+    camera.position.x = playerModel.position.x + 0.1;
+    camera.position.z = playerModel.position.z + 3;
+    camera.position.y = playerModel.position.y + 0.5;
+}
 
 
-function NormalizeBGTexture() {
+function run(speed:number) {
+        playerRun.position.z += speed;
+        GlueCameraTo(playerRun, camera);
+}
+
+function showScore(scoreMessage){
+    const scoreBox = document.getElementById('scoreText');
+    scoreBox.innerText = scoreMessage;
+    scoreBox.style.display = 'block';
+}
+
+function resizeScoreText() {
+    const scoreText = document.getElementById("scoreText");
+    scoreText.style.left = (window.innerWidth - scoreText.offsetWidth) / 2 + "px";
+}
+function NormalizeBGTexture(aspect) {
     bgTexture.offset.x = aspect > 1 ? (1 - 1 / aspect) / 2 : 0;
     bgTexture.repeat.x = aspect > 1 ? 1 / aspect : 1;
 
     bgTexture.offset.y = aspect > 1 ? 0 : (1 - aspect) / 2;
     bgTexture.repeat.y = aspect > 1 ? 1 : aspect;
 }
+window.addEventListener('touchmove', (clientTouch)=>{
+    touch.x = clientTouch.touches[0].clientX / window.innerWidth -0.5;
+    if(playerRun.position.x < -1 || playerRun.position.x > 1) {
+        playerRun.position.x = 0;
+    }
+    else{
+        playerRun.position.x += touch.x * 0.1;
+    }
+})
 
-function CameraControls() {
-    const controls = new OrbitControls(camera, renderer.domElement);
+window.addEventListener('touchstart',(clientTouch)=>{
+    let firstTouch = false;
+    if(firstTouch === false)
+    {
+        playerSpeed = -0.01;
+        removeObject(playerIdle);
+        scene.add(playerRun);
+        playerAnimationMixer = new THREE.AnimationMixer(playerRun);
+        action = playerAnimationMixer.clipAction(playerRun.animations[0]);
+        action.play();
+    }
+    else{
 
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.05;
-    controls.screenSpacePanning = false;
-    controls.minDistance = 2;
-    controls.maxDistance = 10;
-    return controls;
-}
-
-
-
-function update(){
-    controls.update();
-    ticker += clock.getElapsedTime();
-    console.log('frame');
-    window.requestAnimationFrame(update);
-    renderer.render(scene, camera);
-}
+    }
+    firstTouch = true;
+})
