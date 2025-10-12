@@ -1,198 +1,212 @@
 import * as THREE from 'three';
 import {Player} from './Player';
-import {ImportClass} from "./ImportClass";
+import {AssetLoader} from "./AssetLoader";
 import {CameraControls} from "./CameraControls";
 import {Coin} from "./Coin";
 import {Bomb} from "./Bomb";
 import {Wrath} from "./Wrath";
 import {WrathInteraction} from "./WrathProperties"
 import {Object3DEventMap} from "three";
+import {Explosive} from "./Explosive";
 
-//let fbxLoader = new FBXLoader();
 
-
-const clock = new THREE.Clock();
-let ticker = 0;
-const canvas: Element = document.querySelector('#c');
-const loader = new THREE.TextureLoader();
-const bgTexture = loader.load('public/SkyBox.jpg')
-let canvasAspect = canvas.clientWidth / canvas.clientHeight
-const player = new Player();
+let {clock, ticker, canvas, bgTexture, canvasAspect, player} = PreparationScene();
 let touch = {
     x: 0,
 }
+const volumeButton = document.getElementById("volumeButton");
+let volume = false;
+const listener = new THREE.AudioListener();
+const audioLoader = new THREE.AudioLoader();
+const {loopSound, CoinHopSound, BombHopSound, StepSound, LoseMusic, WinMusic} = createAudio();
+loadSounds()
+if(volume == false){
+    let audioContext = new window.AudioContext;
+}
+volumeButton.addEventListener('touchstart', (event)=>{
+    event.stopPropagation();
+    if(volume == false) {
+        if(playerDeath == false && win == 0) {
+            if (firstTouch) {
+                loopSound.play();
+                StepSound.play();
+            }
+        }
+        volumeButton.style.backgroundImage = "url('/public/sound_on_coffee.png')";
+        volume = true;
+    }
+    else{
+        volumeButton.style.backgroundImage = "url('/public/sound_off_coffee.png')";
+        volume = false;
+        loopSound.pause();
+        StepSound.pause();
+    }
+})
+;
 let firstTouch = false;
 
 NormalizeBGTexture(canvasAspect);
-
 const renderer = new THREE.WebGLRenderer({
         canvas,
         alpha: true
     });
-
 renderer.setSize(window.innerWidth, window.innerHeight);
-
-const axesHelper = new THREE.AxesHelper(3);
-const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight);
-
-
-
-
-const scene = new THREE.Scene();
-scene.background = bgTexture;
-
-
+const {camera, scene} = CreateCameraAndScene();
 const platformForRun = new THREE.Mesh(
     new THREE.BoxGeometry(2, 1, 20),
     new THREE.MeshBasicMaterial(
         {color: '#ffffff',}
     ));
-scene.add(platformForRun);
-platformForRun.position.y = -0.65;
-platformForRun.position.z = -8;
-camera.position.z = 1;
-camera.rotation.y = -0.055;
-camera.position.y = 0.5;
+createPlatform();
+editCameraPlacement();
 const light = new THREE.AmbientLight('#FFFFFF', 5);
-scene.add(light);
-scene.add(camera);
-scene.add(axesHelper);
+createGameScene();
 
-const importclass = new ImportClass();
+camera.add(listener);
+const importclass = new AssetLoader();
 let coins = new Array<Coin>();
-coins.push(
-    new Coin(scene, -0.5, -1, await importclass.importModel("public/Coin_Reskin.fbx")),
-    new Coin(scene, -0.5, -2, await importclass.importModel("public/Coin_Reskin.fbx")),
-    new Coin(scene, +0.5, -4, await importclass.importModel("public/Coin_Reskin.fbx")),
-    new Coin(scene, -0.5, -5, await importclass.importModel("public/Coin_Reskin.fbx")),
-    new Coin(scene, +0.5, -7, await importclass.importModel("public/Coin_Reskin.fbx")),
-    new Coin(scene, +0.5, -8, await importclass.importModel("public/Coin_Reskin.fbx")),
-    new Coin(scene, -0.5, -9, await importclass.importModel("public/Coin_Reskin.fbx")),
-    new Coin(scene, -0.5, -11, await importclass.importModel("public/Coin_Reskin.fbx"))
-);
-
-
-
 let bombs = new Array<Bomb>();
-bombs.push(
-    new Bomb(scene, 0.5, -2, await importclass.importModel("public/bomb.fbx")),
-    new Bomb(scene, 0.5, -6, await importclass.importModel("public/bomb.fbx")),
-    new Bomb(scene, -0.5, -7, await importclass.importModel("public/bomb.fbx")),
-    new Bomb(scene, -0.5, -8, await importclass.importModel("public/bomb.fbx"))
-);
-
 let wraths = new Array<Wrath>();
-wraths.push(
-    new Wrath(scene, -0.5,-3,await importclass.importModel("public/Wrath.fbx")),
-    new Wrath(scene, 0.5,-3,await importclass.importModel("public/Wrath.fbx")),
-    new Wrath(scene, -0.5,-9.5,await importclass.importModel("public/Wrath.fbx")),
-    new Wrath(scene, 0.5,-9.5,await importclass.importModel("public/Wrath.fbx"))
-);
-
-wraths[0].wrathInteraction = new WrathInteraction(wraths[0], 2, 4);
-wraths[1].wrathInteraction = new WrathInteraction(wraths[1], 0, 1);
-wraths[2].wrathInteraction = new WrathInteraction(wraths[2], 1, 2);
-wraths[3].wrathInteraction = new WrathInteraction(wraths[3], 3, 2);
-
+await createIteractionObject();
+addingGateInteraction();
 resizeScoreText();
-
-
-window.addEventListener('resize', ()=>{
-    resizeScoreText();
-
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-
-    renderer.setSize(window.innerWidth,window.innerHeight)
-    renderer.render(scene, camera);
-})
-
-
-
 const cameraControls = new CameraControls(camera, renderer);
-
-const playerDance = await importclass.importModel("public/Dance.fbx");
-playerDance.rotation.y = Math.PI * 1;
-playerDance.position.y = -0.15;
-playerDance.scale.set(0.004,0.004,0.004);
-const playerRun = await importclass.importModel("public/Running.fbx");
-playerRun.rotation.y = Math.PI * 1;
-playerRun.position.y = -0.175;
-playerRun.scale.set(0.004,0.004,0.004);
-const playerIdle = await importclass.importModel("public/Idle.fbx");
-playerIdle.rotation.y = Math.PI * -1;
-playerIdle.scale.set(0.004,0.004,0.004);
+const {playerDance, playerRun, playerIdle} = await loadAnimation();
 let playerAnimationMixer = new THREE.AnimationMixer(playerIdle);
 let action = playerAnimationMixer.clipAction(playerIdle.animations[0]);
 action.play();
-
 scene.add(playerIdle);
 let playerSpeed = 0;
+let sideMoveSpeed = 0.1;
+let expl = new Explosive();
+let playerDeath = false;
+
 update();
 
-//cameraControls.OnEnableControls(false);
-//cameraControls.controls.update();
-let sideMoveSpeed = 0.1;
+function playLoseSounds() {
+    if(volume){
+    StepSound.pause();
+    BombHopSound.play();
+    loopSound.setVolume(0);
+    loopSound.pause();
+    loopSound.remove();
+    LoseMusic.play();
+    }
+    else{
+        StepSound.pause();
+        BombHopSound.pause();
+        loopSound.setVolume(0);
+        loopSound.pause();
+        LoseMusic.pause();
+    }
+}
+
+function playWinSounds() {
+    if(volume) {
+        loopSound.setVolume(0);
+        loopSound.pause();
+        loopSound.remove();
+        StepSound.pause();
+        WinMusic.play();
+    }
+    else{
+        loopSound.pause();
+        StepSound.pause();
+        WinMusic.pause();
+    }
+}
+
+function playCoinTake() {
+    if(volume) {
+        CoinHopSound.play();
+    }
+    else{
+        CoinHopSound.pause();
+    }
+}
+let win:number = 0;
 function update(){
+    if(playerDeath == false){
+        for(let bomb of bombs){
+            if(bomb.OnTrigger(playerRun)){
+                playLoseSounds();
+                removeObject(playerRun);
+                removeObject(bomb.model);
+                showScore("You Lose. You score: "+player.score);
+                playerSpeed = 0;
+                sideMoveSpeed = 0;
+                playerDeath = true;
+                expl.createExplosive(scene,
+                bomb.model.position.x,
+                bomb.model.position.y+0.1,
+                bomb.model.position.z
+                )
+            }
+        }
+    }
+    else{
+        expl.animate(scene);
+    }
     const imageAspect = bgTexture.image ? bgTexture.image.width / bgTexture.image.height : 1;
     const aspect = imageAspect / canvasAspect;
     NormalizeBGTexture(aspect)
     ticker += clock.getElapsedTime();
     window.requestAnimationFrame(update);
     if(playerRun.position.z <= -18) {
-        playerDance.position.z = playerRun.position.z;
-        playerDance.position.x = playerRun.position.x;
-        removeObject(playerRun);
-        scene.add(playerDance);
-        playerSpeed = 0;
-        sideMoveSpeed = 0;
-        playerAnimationMixer = new THREE.AnimationMixer(playerDance);
-        action = playerAnimationMixer.clipAction(playerDance.animations[0]);
-        action.play();
+        if(win == 0) {
+            win+=1;
+            playWinSounds();
+            playerDance.position.z = playerRun.position.z;
+            playerDance.position.x = playerRun.position.x;
+            removeObject(playerRun);
+            scene.add(playerDance);
+            playerSpeed = 0;
+            sideMoveSpeed = 0;
+            playerAnimationMixer = new THREE.AnimationMixer(playerDance);
+            action = playerAnimationMixer.clipAction(playerDance.animations[0]);
+            action.play();
+        }
     }
-    else{
-        run(playerSpeed);
     for(let coin of coins){
         coin.AnimationRotate(0.1);
         if(coin.OnTrigger(playerRun)){
+            playCoinTake();
             player.score += 1;
             showScore(player.score);
             coin.interactionalZone = 0;
             removeObject(coin.model);
-            resizeScoreText();
             }
         }
-    }
     for(let wrath of wraths){
         if(wrath.OnEnterInWrath(playerRun)){
             player.score = wrath.wrathInteraction.doInteraction(player.score);
             showScore(player.score);
         }
     }
+    run(playerSpeed);
     playerAnimationMixer.update(0.01);
     renderer.render(scene, camera);
 }
+
 
 function removeObject(model:THREE.Object3D){
     model.remove();
     model.clear();
 }
-function GlueCameraTo(playerModel:THREE.Object3D<Object3DEventMap>, camera:THREE.Camera) {
+function glueCameraTo(playerModel:THREE.Object3D<Object3DEventMap>, camera:THREE.Camera) {
     camera.position.x = playerModel.position.x;
     camera.position.z = playerModel.position.z + 3;
     camera.position.y = playerModel.position.y + 0.5;
 }
-
-
 function run(speed:number) {
         playerRun.position.z += speed;
-        GlueCameraTo(playerRun, camera);
+        glueCameraTo(playerRun, camera);
 }
-
 function showScore(scoreMessage){
     const scoreBox = document.getElementById('scoreText');
     scoreBox.innerText = scoreMessage;
     scoreBox.style.display = 'block';
+    resizeScoreText();
 }
 
 function resizeScoreText() {
@@ -206,6 +220,7 @@ function NormalizeBGTexture(aspect) {
     bgTexture.offset.y = aspect > 1 ? 0 : (1 - aspect) / 2;
     bgTexture.repeat.y = aspect > 1 ? 1 : aspect;
 }
+
 window.addEventListener('touchmove', (clientTouch)=>{
     touch.x = clientTouch.touches[0].clientX / window.innerWidth -0.5;
     if(playerRun.position.x < -1 || playerRun.position.x > 1) {
@@ -217,8 +232,17 @@ window.addEventListener('touchmove', (clientTouch)=>{
 })
 
 window.addEventListener('touchstart',(clientTouch)=>{
+    clientTouch.stopPropagation();
     if(firstTouch == false)
     {
+        if(volume == false){
+            loopSound.pause();
+            StepSound.pause();
+        }
+        else{
+            loopSound.play();
+            StepSound.play();
+        }
         firstTouch = true;
         playerSpeed = -0.01;
         removeObject(playerIdle);
@@ -228,6 +252,144 @@ window.addEventListener('touchstart',(clientTouch)=>{
         action.play();
     }
     else{
-
     }
 })
+
+
+async function loadWrathArray() {
+    wraths.push(
+        new Wrath(scene, -0.5, -3, await importclass.importModel("public/Wrath.fbx")),
+        new Wrath(scene, 0.5, -3, await importclass.importModel("public/Wrath.fbx")),
+        new Wrath(scene, -0.5, -9.5, await importclass.importModel("public/Wrath.fbx")),
+        new Wrath(scene, 0.5, -9.5, await importclass.importModel("public/Wrath.fbx"))
+    );
+}
+
+
+async function loadCoinArray() {
+    coins.push(
+        new Coin(scene, -0.5, -1, await importclass.importModel("public/Coin_Reskin.fbx")),
+        new Coin(scene, -0.5, -2, await importclass.importModel("public/Coin_Reskin.fbx")),
+        new Coin(scene, +0.5, -4, await importclass.importModel("public/Coin_Reskin.fbx")),
+        new Coin(scene, -0.5, -5, await importclass.importModel("public/Coin_Reskin.fbx")),
+        new Coin(scene, +0.5, -7, await importclass.importModel("public/Coin_Reskin.fbx")),
+        new Coin(scene, +0.5, -8, await importclass.importModel("public/Coin_Reskin.fbx")),
+        new Coin(scene, -0.5, -9, await importclass.importModel("public/Coin_Reskin.fbx")),
+        new Coin(scene, -0.5, -11, await importclass.importModel("public/Coin_Reskin.fbx"))
+    );
+}
+
+async function loadBombArray() {
+    bombs.push(
+        new Bomb(scene, 0.5, -2, await importclass.importModel("public/bomb.fbx")),
+        new Bomb(scene, 0.5, -6, await importclass.importModel("public/bomb.fbx")),
+        new Bomb(scene, -0.5, -7, await importclass.importModel("public/bomb.fbx")),
+        new Bomb(scene, -0.5, -8, await importclass.importModel("public/bomb.fbx"))
+    );
+}
+function createPlatform() {
+    platformForRun.position.y = -0.65;
+    platformForRun.position.z = -8;
+}
+function addingGateInteraction() {
+    wraths[0].wrathInteraction = new WrathInteraction(wraths[0], 2, 4);
+    wraths[1].wrathInteraction = new WrathInteraction(wraths[1], 0, 1);
+    wraths[2].wrathInteraction = new WrathInteraction(wraths[2], 1, 2);
+    wraths[3].wrathInteraction = new WrathInteraction(wraths[3], 3, 2);
+}
+function createGameScene() {
+    scene.add(platformForRun);
+    scene.add(light);
+    scene.add(camera);
+}
+function editCameraPlacement() {
+    camera.position.z = 1;
+    camera.position.y = 0.5;
+}
+function PreparationScene() {
+    const clock = new THREE.Clock();
+    let ticker = 0;
+    const canvas: Element = document.querySelector('#c');
+    const loader = new THREE.TextureLoader();
+    const bgTexture = loader.load('public/SkyBox.jpg')
+    let canvasAspect = canvas.clientWidth / canvas.clientHeight
+    const player = new Player();
+    return {clock, ticker, canvas, bgTexture, canvasAspect, player};
+}
+
+function CreateCameraAndScene() {
+    const axesHelper = new THREE.AxesHelper(3);
+    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight);
+    const scene = new THREE.Scene();
+    scene.background = bgTexture;
+    return {axesHelper, camera, scene};
+}
+window.addEventListener('resize', ()=>{
+    resizeScoreText();
+
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+
+    renderer.setSize(window.innerWidth,window.innerHeight)
+    renderer.render(scene, camera);
+})
+
+async function loadAnimation() {
+    const playerDance = await importclass.importModel("public/Dance.fbx");
+    playerDance.rotation.y = Math.PI * 0.5;
+    playerDance.position.y = -0.15;
+    playerDance.scale.set(0.004, 0.004, 0.004);
+    const playerRun = await importclass.importModel("public/Running.fbx");
+    playerRun.rotation.y = Math.PI * 1;
+    playerRun.position.y = -0.175;
+    playerRun.scale.set(0.004, 0.004, 0.004);
+    const playerIdle = await importclass.importModel("public/Idle.fbx");
+    playerIdle.rotation.y = Math.PI * -1;
+    playerIdle.scale.set(0.004, 0.004, 0.004);
+    return {playerDance, playerRun, playerIdle};
+}
+
+async function createIteractionObject() {
+    await loadCoinArray();
+    await loadBombArray();
+    await loadWrathArray();
+}
+
+function loadSounds() {
+    audioLoader.load('public/loopTrack.wav', function(buffer) {
+        loopSound.setBuffer(buffer);
+        loopSound.setLoop(true);
+        loopSound.setVolume(0.5);
+    });
+    audioLoader.load('public/coin.mp3', function (buffer) {
+        CoinHopSound.setBuffer(buffer);
+        CoinHopSound.setVolume(0.5);
+    });
+    audioLoader.load('public/explosion_small_no_tail_03.wav', function (buffer) {
+        BombHopSound.setBuffer(buffer);
+        BombHopSound.setVolume(0.5);
+    });
+    audioLoader.load('public/step_0.mp3', function (buffer) {
+        StepSound.setBuffer(buffer);
+        StepSound.setVolume(0.5);
+        StepSound.setLoop(true);
+    });
+    audioLoader.load('public/STGR_Fail_Lose_forMUSIC_A_1.wav', function (buffer) {
+        LoseMusic.setBuffer(buffer);
+        LoseMusic.setVolume(0.5);
+    });
+    audioLoader.load('public/STGR_Success_Win_forMUSIC_A_2.wav', function (buffer) {
+        WinMusic.setBuffer(buffer);
+        WinMusic.setVolume(0.5);
+    });
+}
+
+function createAudio() {
+    const loopSound = new THREE.Audio(listener);
+    const CoinHopSound = new THREE.Audio(listener);
+    const BombHopSound = new THREE.Audio(listener);
+    const StepSound = new THREE.Audio(listener);
+    const LoseMusic = new THREE.Audio(listener);
+    const WinMusic = new THREE.Audio(listener);
+    return {loopSound, CoinHopSound, BombHopSound, StepSound, LoseMusic, WinMusic};
+}

@@ -9,7 +9,7 @@ export class Bomb extends InteractionalObject{
         _scene.add(this.model);
     }
 
-    AnimationRotate(_tick){
+    public AnimationRotate(_tick){
         this.model.rotation.y += _tick;
     }
 }

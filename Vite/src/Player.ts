@@ -1,12 +1,12 @@
 ﻿import * as THREE from 'three';
 import {FBXLoader} from "three/examples/jsm/loaders/FBXLoader";
 import {Object3D} from "three";
-import {ImportClass} from "./ImportClass"
+import {AssetLoader} from "./AssetLoader"
 
 
 export class Player{
     public score: number = 0;
-    private readonly importclass = new ImportClass();
+    private readonly importclass = new AssetLoader();
     public playerRun:Object3D;
     public playerDance:Object3D;
     public playerIdle:Object3D

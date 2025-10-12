@@ -3,8 +3,8 @@ import {InteractionalObject} from "./InteractionalObject";
 import {WrathInteraction} from "./WrathProperties";
 
 export class Wrath extends InteractionalObject{
-    interactionalZoneWrathX = 0.7;
-    interactionalZoneWrathZ = 0.2;
+    private readonly interactionalZoneWrathX = 0.7;
+    private readonly interactionalZoneWrathZ = 0.2;
     public wrathInteraction: WrathInteraction;
     private activatedWrath:boolean = false;
     constructor(_scene: Scene, x:number, z:number, _model: Object3D) {

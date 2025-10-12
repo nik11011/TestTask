@@ -10,9 +10,9 @@ enum interactionalWithScore{
 
 
 export class WrathInteraction{
-    private numInteraction:number;
-    private operation:interactionalWithScore;
-    wrath:Wrath;
+    private readonly numInteraction:number;
+    private readonly operation:interactionalWithScore;
+    private wrath:Wrath;
     constructor(_wrath:Wrath, _operation:interactionalWithScore, _numInteraction:number) {
         this.wrath = _wrath;
         this.operation = _operation;

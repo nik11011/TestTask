@@ -1,5 +1,5 @@
 ﻿import * as THREE from "three"
-import {ImportClass} from "./ImportClass";
+import {AssetLoader} from "./AssetLoader";
 
 export class Animator{
 
@@ -11,7 +11,7 @@ export class Animator{
 
     constructor(_scene: THREE.Scene) {
         this.scene = _scene;
-        this.importclass = new ImportClass(this.scene)
+        this.importclass = new AssetLoader(this.scene)
         this.fillAnimationsArray();
         let normalizeFBX:number = 0.003;
         for(let animationFBX of this.libraryAnimations){

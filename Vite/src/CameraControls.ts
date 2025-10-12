@@ -2,8 +2,8 @@
 import * as THREE from "three"
 
 export class CameraControls{
-    private camera: THREE.Camera;
-    private renderer: THREE.WebGLRenderer;
+    private readonly camera: THREE.Camera;
+    private readonly renderer: THREE.WebGLRenderer;
     controls: OrbitControls;
     constructor(_camera: THREE.Camera, _renderer:THREE.WebGLRenderer ) {
         this.camera = _camera;
