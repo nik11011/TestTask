@@ -1,6 +1,5 @@
 ﻿import {FontLoader} from "three/examples/jsm/loaders/FontLoader";
 import * as THREE from "three";
-
 interface TextSpriteOptions {
     font?: string;
     textColor?: string;
@@ -10,19 +9,14 @@ interface TextSpriteOptions {
     backgroundColor?: string;
 }
 
-/**
- * Создаёт 2D-текстовый спрайт с рамкой.
- * @param text — Текст для отображения
- * @param options — Настройки шрифта, цветов и отступов
- */
 export function createTextSprite(text: string, options: TextSpriteOptions = {}): THREE.Sprite & { updateText: (newText: string) => void } {
     const {
-        font = '20px Arial',
+        font = '20px Custom',
         textColor = '#ffffff',
         borderColor = 'red',
         borderWidth = 4,
         padding = 10,
-        backgroundColor = 'rgba(0, 0, 0, 0.6)',
+        backgroundColor = 'rgba(255,74,74,0.6)',
     } = options;
 
     // === Canvas и контекст ===

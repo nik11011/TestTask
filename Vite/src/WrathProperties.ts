@@ -1,7 +1,7 @@
 ﻿import {Wrath} from "./Wrath";
 
 
-enum interactionalWithScore{
+export enum interactionalWithScore{
     PLUS,
     MINUS,
     MULTIPLY,

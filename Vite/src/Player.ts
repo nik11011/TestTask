@@ -13,10 +13,4 @@ export class Player{
     private touch = {x: 0};
     constructor(){
     }
-
-
-
-    public CharacterControl(){
-
-    }
 }

@@ -5,55 +5,25 @@ import {CameraControls} from "./CameraControls";
 import {Coin} from "./Coin";
 import {Bomb} from "./Bomb";
 import {Wrath} from "./Wrath";
-import {WrathInteraction} from "./WrathProperties"
+import {interactionalWithScore, WrathInteraction} from "./WrathProperties"
 import {Object3DEventMap} from "three";
 import {Explosive} from "./Explosive";
-import {FontLoader} from "three/examples/jsm/loaders/FontLoader";
-import {TextGeometry} from 'three/examples/jsm/geometries/TextGeometry';
-import {createTextSprite} from "./Fonts";
+import {createTextMesh, TextMesh, updateTextMesh} from "./Font3D";
 
 let {clock, ticker, canvas, bgTexture, canvasAspect, player} = PreparationScene();
 let touch = {
     x: 0,
+    y: 0
 }
-//let canvasForText = document.createElement('canvas');
-const volumeButton = document.getElementById("volumeButton");
 let volume = false;
 const listener = new THREE.AudioListener();
 const audioLoader = new THREE.AudioLoader();
 const {loopSound, CoinHopSound, BombHopSound, StepSound, LoseMusic, WinMusic, WrathSound} = await createAudio();
 loadSounds()
-if(volume == false){
+if (volume == false){
     let audioContext = new window.AudioContext;
 }
-volumeButton.addEventListener('touchstart', (event)=>{
-    event.stopPropagation();
-    function volumeOff() {
-        volumeButton.style.backgroundImage = "url('/public/sound_off_coffee.png')";
-        volume = false;
-        loopSound.pause();
-        StepSound.pause();
-    }
 
-    function playTracks() {
-        loopSound.play();
-        StepSound.play();
-    }
-
-    if(volume == false) {
-        if(playerDeath == false && win == 0) {
-            if (firstTouch) {
-                playTracks();
-            }
-        }
-        volumeButton.style.backgroundImage = "url('/public/sound_on_coffee.png')";
-        volume = true;
-    }
-    else if (volume == true){
-        volumeOff();
-    }
-})
-;
 let firstTouch = false;
 
 NormalizeBGTexture(canvasAspect);
@@ -71,6 +41,26 @@ const platformForRun = new THREE.Mesh(
 createPlatform();
 editCameraPlacement();
 const light = new THREE.AmbientLight('#FFFFFF', 5);
+let textMeshWraths = new Array<TextMesh>();
+
+let scoreText = await createTextMesh("Score", 1, '#ca9100');
+scoreText.scale.set(0.5,0.5,0.0001);
+scoreText.position.set(0, 1, -3)
+scene.add(scoreText);
+let textMeshWrath = await createTextMesh("x4", 0.5, "#0004ff");
+textMeshWrath.position.set(-0.5,0.5,-3);
+let textMeshWrath1 = await createTextMesh("-1", 0.5, "#fd0000");
+textMeshWrath1.position.set(0.5,0.5,-3);
+let textMeshWrath2 = await createTextMesh("+2", 0.5, "#0004ff");
+textMeshWrath2.position.set(-0.5,0.5,-9.5);
+let textMeshWrath3 = await createTextMesh("/2", 0.5, "#ff0000");
+textMeshWrath3.position.set(0.5,0.5,-9.5);
+scene.add(textMeshWrath);
+scene.add(textMeshWrath1);
+scene.add(textMeshWrath2);
+scene.add(textMeshWrath3);
+
+
 createGameScene();
 
 camera.add(listener);
@@ -90,20 +80,10 @@ let playerSpeed = 0;
 let sideMoveSpeed = 0.1;
 let expl = new Explosive();
 let playerDeath = false;
-let reloadButton = document.getElementById('reloadButton');
-let downloadButton = document.getElementById('downloadButton');
-reloadButton.addEventListener('touchstart', (touch) =>{
-    touch.stopPropagation();
-    location.reload();
-})
 
 
 
-
-
-const textSprite = createTextSprite('Привет, мир!', { font: '28px Arial' });
-textSprite.position.y += 3.5;
-scene.add(textSprite)
+let restartBtn = new THREE.Mesh();
 
 
 
@@ -128,18 +108,9 @@ scene.add(textSprite)
 
 
 
-
-
-
-
-
-
-
-
-update();
 
 function playLoseSounds() {
-    if(volume){
+    if (volume){
     StepSound.pause();
     BombHopSound.play();
     loopSound.setVolume(0);
@@ -147,7 +118,7 @@ function playLoseSounds() {
     loopSound.remove();
     LoseMusic.play();
     }
-    else{
+    else {
         StepSound.pause();
         BombHopSound.pause();
         loopSound.setVolume(0);
@@ -157,14 +128,14 @@ function playLoseSounds() {
 }
 
 function playWinSounds() {
-    if(volume) {
+    if (volume) {
         loopSound.setVolume(0);
         loopSound.pause();
         loopSound.remove();
         StepSound.pause();
         WinMusic.play();
     }
-    else{
+    else {
         loopSound.pause();
         StepSound.pause();
         WinMusic.pause();
@@ -172,10 +143,10 @@ function playWinSounds() {
 }
 
 function playCoinTake() {
-    if(volume) {
+    if (volume) {
         CoinHopSound.play();
     }
-    else{
+    else {
         CoinHopSound.pause();
     }
 }
@@ -188,11 +159,89 @@ function WrathSoundPlay() {
         WrathSound.pause();
     }
 }
+let redPlaneGeometry = new THREE.PlaneGeometry(2.4,0.75)
+let redPlaneMaterial = new THREE.MeshBasicMaterial({color: "#730000"});
+let redPlane = new THREE.Mesh(
+    redPlaneGeometry,
+    redPlaneMaterial
+);
+coins[8].model.scale.set(4,4,4);
+scene.add(redPlane);
 
+let textureLoader = new THREE.TextureLoader();
+let textureOffSound = await textureLoader.loadAsync('public/sound_off_coffee.png');
+let textureOnSound = await textureLoader.loadAsync('public/sound_on_coffee.png');
+let buttonOfSound = new THREE.MeshBasicMaterial({
+    map: textureOffSound,
+    transparent:true,
+    depthTest:false,
+    depthWrite:false
+});
+
+let buttonSoundGeometry = new THREE.PlaneGeometry(0.2,0.2);
+let buttonSound = new THREE.Mesh(
+    buttonSoundGeometry,
+    buttonOfSound
+);
+//buttonSound.scale()
+scene.add(buttonSound)
+
+async function createInstallButton(camera:THREE.Camera){
+    let installBtnGeometry = new THREE.PlaneGeometry(1,0.5)
+    let installBtnMaterial = new THREE.MeshBasicMaterial({color: "#00f60b", depthTest: false});
+    let installBtn = new THREE.Mesh(
+        installBtnGeometry,
+        installBtnMaterial
+    )
+    let installText = await createTextMesh('Install',1,'#005504');
+    installText.scale.set(0.2,0.2,0.00001)
+    installBtn.position.x = camera.position.x;
+    installBtn.position.z = camera.position.z - 2;
+    installBtn.position.y = camera.position.y - 0.4;
+    installText.position.x = installBtn.position.x;
+    installText.position.z = installBtn.position.z;
+    installText.position.y = installBtn.position.y;
+    installText.scale.z = 0.00000001;
+    installText.material.depthTest = false;
+    scene.add(installBtn);
+    scene.add(installText);
+}
+async function createRestartButton(camera:THREE.Camera){
+    let restartBtnGeometry = new THREE.PlaneGeometry(1,0.5)
+    let restartBtnMaterial = new THREE.MeshBasicMaterial({color: "#00f60b", depthTest: false});
+    let restartBtn = new THREE.Mesh(
+        restartBtnGeometry,
+        restartBtnMaterial
+    );
+    let restartText = await createTextMesh('Restart',1,'#005504');
+    restartText.scale.set(0.2,0.2,0.00001)
+    restartBtn.position.x = camera.position.x;
+    restartBtn.position.z = camera.position.z - 2;
+    restartBtn.position.y = camera.position.y + 0.2;
+    restartText.position.x = restartBtn.position.x;
+    restartText.position.z = restartBtn.position.z;
+    restartText.position.y = restartBtn.position.y;
+    restartText.scale.z = 0.00000001;
+    restartText.material.depthTest = false;
+    scene.add(restartBtn);
+    scene.add(restartText);
+}
+
+const raycaster = new THREE.Raycaster();
+const rayTouch = new THREE.Vector2();
+
+
+
+window.addEventListener('mousemove', onMouseMove);
+window.addEventListener('click', onClick);
+
+
+
+update();
 function update(){
-    if(playerDeath == false){
+    if (playerDeath == false){
         for(let bomb of bombs){
-            if(bomb.OnTrigger(playerRun)){
+            if (bomb.OnTrigger(playerRun)){
                 playLoseSounds();
                 removeObject(playerRun);
                 removeObject(bomb.model);
@@ -202,14 +251,13 @@ function update(){
                 expl.createExplosive(scene,
                 bomb.model.position.x,
                 bomb.model.position.y+0.1,
-                bomb.model.position.z
-                )
-                reloadButton.style.display = 'inline-block'
-                downloadButton.style.display = 'inline-block'
+                bomb.model.position.z)
+                createRestartButton(camera);
+                createInstallButton(camera);
             }
         }
     }
-    else{
+    else {
         expl.animate(scene);
     }
     const imageAspect = bgTexture.image ? bgTexture.image.width / bgTexture.image.height : 1;
@@ -217,10 +265,8 @@ function update(){
     NormalizeBGTexture(aspect)
     ticker += clock.getElapsedTime();
     window.requestAnimationFrame(update);
-    if(playerRun.position.z <= -18) {
-        if(win == 0) {
-            reloadButton.style.display = 'inline-block'
-            downloadButton.style.display = 'inline-block'
+    if (playerRun.position.z <= -18) {
+        if (win == 0) {
             win+=1;
             playWinSounds();
             playerDance.position.z = playerRun.position.z;
@@ -232,24 +278,25 @@ function update(){
             playerAnimationMixer = new THREE.AnimationMixer(playerDance);
             action = playerAnimationMixer.clipAction(playerDance.animations[0]);
             action.play();
+            createRestartButton(camera);
+            createInstallButton(camera);
         }
     }
     for(let coin of coins){
         coin.AnimationRotate(0.1);
-        if(coin.OnTrigger(playerRun)){
+        if (coin.OnTrigger(playerRun)){
             playCoinTake();
             player.score += 1;
             coin.interactionalZone = 0;
-            textSprite.updateText(player.score);
+            updateTextMesh(scoreText, `${player.score}`)
             removeObject(coin.model);
             }
         }
     for(let wrath of wraths){
-        if(wrath.OnEnterInWrath(playerRun)){
+        if (wrath.OnEnterInWrath(playerRun)){
             player.score = wrath.wrathInteraction.doInteraction(player.score);
-            textSprite.updateText(player.score);
+            updateTextMesh(scoreText, `${player.score}`)
             WrathSoundPlay();
-
         }
     }
     run(playerSpeed);
@@ -266,7 +313,25 @@ function glueCameraTo(playerModel:THREE.Object3D<Object3DEventMap>, camera:THREE
     camera.position.x = playerModel.position.x;
     camera.position.z = playerModel.position.z + 3;
     camera.position.y = playerModel.position.y + 0.5;
-    textSprite.position.z = camera.position.z-7;
+    scoreText.position.set(
+        playerModel.position.x+0.2,
+        playerModel.position.y+2.5,
+        playerModel.position.z-3
+    )
+    coins[8].model.position.set(
+        playerModel.position.x-1.2,
+        scoreText.position.y,
+        scoreText.position.z,
+    );
+
+    redPlane.position.x=playerModel.position.x;
+    redPlane.position.y=scoreText.position.y;
+    redPlane.position.z=scoreText.position.z;
+    buttonSound.position.set(
+        camera.position.x - 0.2,
+        camera.position.y - 0.45,
+        camera.position.z - 1,
+    )
 }
 function run(speed:number) {
         playerRun.position.z += speed;
@@ -280,21 +345,22 @@ function NormalizeBGTexture(aspect) {
     bgTexture.repeat.y = aspect > 1 ? 1 : aspect;
 }
 
-window.addEventListener('touchmove', (clientTouch)=>{
+window.addEventListener('touchmove', (clientTouch) => {
     touch.x = clientTouch.touches[0].clientX / window.innerWidth -0.5;
-    if(playerRun.position.x < -1 || playerRun.position.x > 1) {
+    touch.y = clientTouch.touches[0].clientY / window.innerWidth -0.5;
+    if (playerRun.position.x < -1 || playerRun.position.x > 1) {
         playerRun.position.x = 0;
     }
-    else{
+    else {
         playerRun.position.x += touch.x * sideMoveSpeed;
     }
 })
 
-window.addEventListener('touchstart',(clientTouch)=>{
+window.addEventListener('touchstart',(clientTouch) => {
     clientTouch.stopPropagation();
-    if(win == 0) {
+    if (win == 0) {
         if (firstTouch == false) {
-            if (volume == false) {
+            if (volume == false && playerDeath!=true) {
                 loopSound.pause();
                 StepSound.pause();
             } else {
@@ -325,6 +391,8 @@ async function loadWrathArray() {
         new Wrath(scene, -0.5, -9.5, await importclass.importModel("public/Wrath.fbx")),
         new Wrath(scene, 0.5, -9.5, await importclass.importModel("public/Wrath.fbx"))
     );
+
+
 }
 
 
@@ -337,6 +405,7 @@ async function loadCoinArray() {
         new Coin(scene, +0.5, -7, await importclass.importModel("public/Coin_Reskin.fbx")),
         new Coin(scene, +0.5, -8, await importclass.importModel("public/Coin_Reskin.fbx")),
         new Coin(scene, -0.5, -9, await importclass.importModel("public/Coin_Reskin.fbx")),
+        new Coin(scene, -0.5, -11, await importclass.importModel("public/Coin_Reskin.fbx")),
         new Coin(scene, -0.5, -11, await importclass.importModel("public/Coin_Reskin.fbx"))
     );
 }
@@ -354,10 +423,11 @@ function createPlatform() {
     platformForRun.position.z = -8;
 }
 function addingGateInteraction() {
-    wraths[0].wrathInteraction = new WrathInteraction(wraths[0], 2, 4);
-    wraths[1].wrathInteraction = new WrathInteraction(wraths[1], 0, 1);
-    wraths[2].wrathInteraction = new WrathInteraction(wraths[2], 1, 2);
-    wraths[3].wrathInteraction = new WrathInteraction(wraths[3], 3, 2);
+    wraths[0].wrathInteraction = new WrathInteraction(wraths[0], interactionalWithScore.MULTIPLY, 4);
+    wraths[1].wrathInteraction = new WrathInteraction(wraths[1], interactionalWithScore.MINUS, 1);
+    wraths[2].wrathInteraction = new WrathInteraction(wraths[2], interactionalWithScore.PLUS, 2);
+    wraths[3].wrathInteraction = new WrathInteraction(wraths[3], interactionalWithScore.DIVIDE, 2);
+
 }
 function createGameScene() {
     scene.add(platformForRun);
@@ -460,5 +530,43 @@ async function createAudio() {
     const WrathSound = new THREE.Audio(listener)
     return {loopSound, CoinHopSound, BombHopSound, StepSound, LoseMusic, WinMusic, WrathSound};
 }
+
+
+function onMouseMove(event: MouseEvent) {
+    rayTouch.x = (event.clientX / window.innerWidth) * 2 - 1;
+    rayTouch.y = -(event.clientY / window.innerHeight) * 2 + 1;
+}
+
+function onClick() {
+    raycaster.setFromCamera(rayTouch, camera);
+    const intersects = raycaster.intersectObjects(scene.children, false);
+
+    if (intersects.length > 0) {
+        const firstIntersect = intersects[0];
+        if(firstIntersect.object == buttonSound){
+            if(buttonSound.material.map == textureOffSound) {
+                buttonSound.material.map = textureOnSound;
+                playTracks();
+                volume = true;
+            }
+            else{
+                buttonSound.material.map = textureOffSound;
+                volume = false;
+                volumeOff();
+            }
+        }
+    }
+}
+function volumeOff() {
+    volume = false;
+    loopSound.pause();
+    StepSound.pause();
+}
+function playTracks() {
+    if(playerDeath!=true && win!=0) {
+        loopSound.play();
+        StepSound.play();
+    }
+};
 
 
