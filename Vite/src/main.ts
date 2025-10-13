@@ -8,38 +8,49 @@ import {Wrath} from "./Wrath";
 import {WrathInteraction} from "./WrathProperties"
 import {Object3DEventMap} from "three";
 import {Explosive} from "./Explosive";
-
+import {FontLoader} from "three/examples/jsm/loaders/FontLoader";
+import {TextGeometry} from 'three/examples/jsm/geometries/TextGeometry';
+import {createTextSprite} from "./Fonts";
 
 let {clock, ticker, canvas, bgTexture, canvasAspect, player} = PreparationScene();
 let touch = {
     x: 0,
 }
+//let canvasForText = document.createElement('canvas');
 const volumeButton = document.getElementById("volumeButton");
 let volume = false;
 const listener = new THREE.AudioListener();
 const audioLoader = new THREE.AudioLoader();
-const {loopSound, CoinHopSound, BombHopSound, StepSound, LoseMusic, WinMusic} = createAudio();
+const {loopSound, CoinHopSound, BombHopSound, StepSound, LoseMusic, WinMusic, WrathSound} = await createAudio();
 loadSounds()
 if(volume == false){
     let audioContext = new window.AudioContext;
 }
 volumeButton.addEventListener('touchstart', (event)=>{
     event.stopPropagation();
+    function volumeOff() {
+        volumeButton.style.backgroundImage = "url('/public/sound_off_coffee.png')";
+        volume = false;
+        loopSound.pause();
+        StepSound.pause();
+    }
+
+    function playTracks() {
+        loopSound.play();
+        StepSound.play();
+    }
+
     if(volume == false) {
         if(playerDeath == false && win == 0) {
             if (firstTouch) {
-                loopSound.play();
-                StepSound.play();
+                playTracks();
             }
         }
         volumeButton.style.backgroundImage = "url('/public/sound_on_coffee.png')";
         volume = true;
     }
-    else{
-        volumeButton.style.backgroundImage = "url('/public/sound_off_coffee.png')";
-        volume = false;
-        loopSound.pause();
-        StepSound.pause();
+    else if (volume == true){
+        volumeOff();
     }
 })
 ;
@@ -69,7 +80,6 @@ let bombs = new Array<Bomb>();
 let wraths = new Array<Wrath>();
 await createIteractionObject();
 addingGateInteraction();
-resizeScoreText();
 const cameraControls = new CameraControls(camera, renderer);
 const {playerDance, playerRun, playerIdle} = await loadAnimation();
 let playerAnimationMixer = new THREE.AnimationMixer(playerIdle);
@@ -80,6 +90,51 @@ let playerSpeed = 0;
 let sideMoveSpeed = 0.1;
 let expl = new Explosive();
 let playerDeath = false;
+let reloadButton = document.getElementById('reloadButton');
+let downloadButton = document.getElementById('downloadButton');
+reloadButton.addEventListener('touchstart', (touch) =>{
+    touch.stopPropagation();
+    location.reload();
+})
+
+
+
+
+
+const textSprite = createTextSprite('Привет, мир!', { font: '28px Arial' });
+textSprite.position.y += 3.5;
+scene.add(textSprite)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 update();
 
@@ -125,6 +180,15 @@ function playCoinTake() {
     }
 }
 let win:number = 0;
+
+function WrathSoundPlay() {
+    if (volume) {
+        WrathSound.play();
+    } else {
+        WrathSound.pause();
+    }
+}
+
 function update(){
     if(playerDeath == false){
         for(let bomb of bombs){
@@ -132,7 +196,6 @@ function update(){
                 playLoseSounds();
                 removeObject(playerRun);
                 removeObject(bomb.model);
-                showScore("You Lose. You score: "+player.score);
                 playerSpeed = 0;
                 sideMoveSpeed = 0;
                 playerDeath = true;
@@ -141,6 +204,8 @@ function update(){
                 bomb.model.position.y+0.1,
                 bomb.model.position.z
                 )
+                reloadButton.style.display = 'inline-block'
+                downloadButton.style.display = 'inline-block'
             }
         }
     }
@@ -154,6 +219,8 @@ function update(){
     window.requestAnimationFrame(update);
     if(playerRun.position.z <= -18) {
         if(win == 0) {
+            reloadButton.style.display = 'inline-block'
+            downloadButton.style.display = 'inline-block'
             win+=1;
             playWinSounds();
             playerDance.position.z = playerRun.position.z;
@@ -172,15 +239,17 @@ function update(){
         if(coin.OnTrigger(playerRun)){
             playCoinTake();
             player.score += 1;
-            showScore(player.score);
             coin.interactionalZone = 0;
+            textSprite.updateText(player.score);
             removeObject(coin.model);
             }
         }
     for(let wrath of wraths){
         if(wrath.OnEnterInWrath(playerRun)){
             player.score = wrath.wrathInteraction.doInteraction(player.score);
-            showScore(player.score);
+            textSprite.updateText(player.score);
+            WrathSoundPlay();
+
         }
     }
     run(playerSpeed);
@@ -197,21 +266,11 @@ function glueCameraTo(playerModel:THREE.Object3D<Object3DEventMap>, camera:THREE
     camera.position.x = playerModel.position.x;
     camera.position.z = playerModel.position.z + 3;
     camera.position.y = playerModel.position.y + 0.5;
+    textSprite.position.z = camera.position.z-7;
 }
 function run(speed:number) {
         playerRun.position.z += speed;
         glueCameraTo(playerRun, camera);
-}
-function showScore(scoreMessage){
-    const scoreBox = document.getElementById('scoreText');
-    scoreBox.innerText = scoreMessage;
-    scoreBox.style.display = 'block';
-    resizeScoreText();
-}
-
-function resizeScoreText() {
-    const scoreText = document.getElementById("scoreText");
-    scoreText.style.left = (window.innerWidth - scoreText.offsetWidth) / 2 + "px";
 }
 function NormalizeBGTexture(aspect) {
     bgTexture.offset.x = aspect > 1 ? (1 - 1 / aspect) / 2 : 0;
@@ -233,25 +292,28 @@ window.addEventListener('touchmove', (clientTouch)=>{
 
 window.addEventListener('touchstart',(clientTouch)=>{
     clientTouch.stopPropagation();
-    if(firstTouch == false)
-    {
-        if(volume == false){
-            loopSound.pause();
-            StepSound.pause();
+    if(win == 0) {
+        if (firstTouch == false) {
+            if (volume == false) {
+                loopSound.pause();
+                StepSound.pause();
+            } else {
+                loopSound.play();
+                StepSound.play();
+            }
+            firstTouch = true;
+            playerSpeed = -0.01;
+            removeObject(playerIdle);
+            scene.add(playerRun);
+            playerAnimationMixer = new THREE.AnimationMixer(playerRun);
+            action = playerAnimationMixer.clipAction(playerRun.animations[0]);
+            action.play();
+        } else {
+            if (volume == true) {
+                loopSound.play();
+                StepSound.play();
+            }
         }
-        else{
-            loopSound.play();
-            StepSound.play();
-        }
-        firstTouch = true;
-        playerSpeed = -0.01;
-        removeObject(playerIdle);
-        scene.add(playerRun);
-        playerAnimationMixer = new THREE.AnimationMixer(playerRun);
-        action = playerAnimationMixer.clipAction(playerRun.animations[0]);
-        action.play();
-    }
-    else{
     }
 })
 
@@ -325,7 +387,6 @@ function CreateCameraAndScene() {
     return {axesHelper, camera, scene};
 }
 window.addEventListener('resize', ()=>{
-    resizeScoreText();
 
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
@@ -341,10 +402,11 @@ async function loadAnimation() {
     playerDance.scale.set(0.004, 0.004, 0.004);
     const playerRun = await importclass.importModel("public/Running.fbx");
     playerRun.rotation.y = Math.PI * 1;
-    playerRun.position.y = -0.175;
+    playerRun.position.y = -0.15;
     playerRun.scale.set(0.004, 0.004, 0.004);
     const playerIdle = await importclass.importModel("public/Idle.fbx");
     playerIdle.rotation.y = Math.PI * -1;
+    playerIdle.position.y = -0.15;
     playerIdle.scale.set(0.004, 0.004, 0.004);
     return {playerDance, playerRun, playerIdle};
 }
@@ -382,14 +444,21 @@ function loadSounds() {
         WinMusic.setBuffer(buffer);
         WinMusic.setVolume(0.5);
     });
+    audioLoader.load('public/SFX_UI_Appear_Generic_2.wav', function (buffer) {
+        WrathSound.setBuffer(buffer);
+        WrathSound.setVolume(0.5);
+    });
 }
 
-function createAudio() {
+async function createAudio() {
     const loopSound = new THREE.Audio(listener);
     const CoinHopSound = new THREE.Audio(listener);
     const BombHopSound = new THREE.Audio(listener);
     const StepSound = new THREE.Audio(listener);
     const LoseMusic = new THREE.Audio(listener);
     const WinMusic = new THREE.Audio(listener);
-    return {loopSound, CoinHopSound, BombHopSound, StepSound, LoseMusic, WinMusic};
+    const WrathSound = new THREE.Audio(listener)
+    return {loopSound, CoinHopSound, BombHopSound, StepSound, LoseMusic, WinMusic, WrathSound};
 }
+
+

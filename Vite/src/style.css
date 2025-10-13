@@ -13,21 +13,6 @@ html, body{
     height: 100%;
 }
 
-#scoreText{
-    position: absolute;
-    background-color: aqua;
-    width: 50%;
-    font-size: 4vw;
-    font-family: Custom;
-    top: 2vw;
-    border-radius: 10px;
-    outline: 10px;
-    border: 4px solid #f399f8;
-    display: inline-block;
-    padding: 5px;
-    background-color: white;
-}
-
 #volumeButton{
     position: absolute;
     left: 4%;
@@ -36,6 +21,36 @@ html, body{
     height:10vw;
     background-image: url("/public/sound_off_coffee.png");
     background-size: cover;
+}
+
+#downloadButton{
+    display:none;
+    position: absolute;
+    font-family: Custom;
+    top:50%;
+    left:15%;
+    background-color: #205100;
+    color: white;
+    border-radius: 40px;
+    font-size: 30px;
+    border: 2vw solid #34c300;
+    width: 30vw;
+    height: 10vw;
+}
+
+#reloadButton{
+    display:none;
+    position: absolute;
+    font-family: Custom;
+    top:50%;
+    left:55%;
+    background-color: #205100;
+    color: white;
+    border-radius: 40px;
+    font-size: 30px;
+    border: 2vw solid #34c300;
+    width: 30vw;
+    height: 10vw;
 }
 
 @font-face {

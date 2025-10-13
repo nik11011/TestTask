@@ -10,7 +10,7 @@ export class CameraControls{
         this.renderer = _renderer;
     }
 
-    OnEnableControls(OnEnable:boolean){
+    public OnEnableControls(OnEnable:boolean){
         if(OnEnable) {
             const controls = new OrbitControls(this.camera, this.renderer.domElement);
             controls.enableDamping = true;
