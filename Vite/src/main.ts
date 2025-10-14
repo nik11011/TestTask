@@ -1,28 +1,23 @@
 import * as THREE from 'three';
 import {Player} from './Player';
 import {AssetLoader} from "./AssetLoader";
-import {CameraControls} from "./CameraControls";
 import {Coin} from "./Coin";
 import {Bomb} from "./Bomb";
 import {Wrath} from "./Wrath";
 import {interactionalWithScore, WrathInteraction} from "./WrathProperties"
 import {Object3DEventMap} from "three";
 import {Explosive} from "./Explosive";
-import {createTextMesh, TextMesh, updateTextMesh} from "./Font3D";
+import {createTextMesh, updateTextMesh} from "./Font3D";
 
 let {clock, ticker, canvas, bgTexture, canvasAspect, player} = PreparationScene();
 let touch = {
-    x: 0,
-    y: 0
+    x: 0
 }
 let volume = false;
 const listener = new THREE.AudioListener();
 const audioLoader = new THREE.AudioLoader();
 const {loopSound, CoinHopSound, BombHopSound, StepSound, LoseMusic, WinMusic, WrathSound} = await createAudio();
 loadSounds()
-if (volume == false){
-    let audioContext = new window.AudioContext;
-}
 
 let firstTouch = false;
 
@@ -41,7 +36,6 @@ const platformForRun = new THREE.Mesh(
 createPlatform();
 editCameraPlacement();
 const light = new THREE.AmbientLight('#FFFFFF', 5);
-let textMeshWraths = new Array<TextMesh>();
 
 let scoreText = await createTextMesh("Score", 1, '#ca9100');
 scoreText.scale.set(0.5,0.5,0.0001);
@@ -70,7 +64,6 @@ let bombs = new Array<Bomb>();
 let wraths = new Array<Wrath>();
 await createIteractionObject();
 addingGateInteraction();
-const cameraControls = new CameraControls(camera, renderer);
 const {playerDance, playerRun, playerIdle} = await loadAnimation();
 let playerAnimationMixer = new THREE.AnimationMixer(playerIdle);
 let action = playerAnimationMixer.clipAction(playerIdle.animations[0]);
@@ -80,35 +73,6 @@ let playerSpeed = 0;
 let sideMoveSpeed = 0.1;
 let expl = new Explosive();
 let playerDeath = false;
-
-
-
-let restartBtn = new THREE.Mesh();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 function playLoseSounds() {
     if (volume){
     StepSound.pause();
@@ -133,6 +97,7 @@ function playWinSounds() {
         loopSound.pause();
         loopSound.remove();
         StepSound.pause();
+        StepSound.remove;
         WinMusic.play();
     }
     else {
@@ -174,8 +139,7 @@ let textureOnSound = await textureLoader.loadAsync('public/sound_on_coffee.png')
 let buttonOfSound = new THREE.MeshBasicMaterial({
     map: textureOffSound,
     transparent:true,
-    depthTest:false,
-    depthWrite:false
+    depthFunc: 1
 });
 
 let buttonSoundGeometry = new THREE.PlaneGeometry(0.2,0.2);
@@ -185,16 +149,18 @@ let buttonSound = new THREE.Mesh(
 );
 //buttonSound.scale()
 scene.add(buttonSound)
-
-async function createInstallButton(camera:THREE.Camera){
-    let installBtnGeometry = new THREE.PlaneGeometry(1,0.5)
-    let installBtnMaterial = new THREE.MeshBasicMaterial({color: "#00f60b", depthTest: false});
-    let installBtn = new THREE.Mesh(
+let installBtn;
+let restartBtn;
+let installText = await createTextMesh('Install',1,'#000000');
+let restartText = await createTextMesh('Restart',1,'#000000');
+function createInstallButton(camera:THREE.Camera){
+    let installBtnGeometry = new THREE.PlaneGeometry(1,0.5);
+    let installBtnMaterial = new THREE.MeshBasicMaterial({color: "#baff93", depthFunc: 7});
+    installBtn = new THREE.Mesh(
         installBtnGeometry,
         installBtnMaterial
     )
-    let installText = await createTextMesh('Install',1,'#005504');
-    installText.scale.set(0.2,0.2,0.00001)
+    installText.scale.set(0.2,0.2,0.00001);
     installBtn.position.x = camera.position.x;
     installBtn.position.z = camera.position.z - 2;
     installBtn.position.y = camera.position.y - 0.4;
@@ -202,18 +168,16 @@ async function createInstallButton(camera:THREE.Camera){
     installText.position.z = installBtn.position.z;
     installText.position.y = installBtn.position.y;
     installText.scale.z = 0.00000001;
-    installText.material.depthTest = false;
-    scene.add(installBtn);
-    scene.add(installText);
+    installText.material.depthFunc = 7;
 }
-async function createRestartButton(camera:THREE.Camera){
-    let restartBtnGeometry = new THREE.PlaneGeometry(1,0.5)
-    let restartBtnMaterial = new THREE.MeshBasicMaterial({color: "#00f60b", depthTest: false});
-    let restartBtn = new THREE.Mesh(
+
+function createRestartButton(camera:THREE.Camera){
+    let restartBtnGeometry = new THREE.PlaneGeometry(1,0.5);
+    let restartBtnMaterial = new THREE.MeshBasicMaterial({color: "#baff93", depthFunc: 7});
+    restartBtn = new THREE.Mesh(
         restartBtnGeometry,
         restartBtnMaterial
     );
-    let restartText = await createTextMesh('Restart',1,'#005504');
     restartText.scale.set(0.2,0.2,0.00001)
     restartBtn.position.x = camera.position.x;
     restartBtn.position.z = camera.position.z - 2;
@@ -222,10 +186,9 @@ async function createRestartButton(camera:THREE.Camera){
     restartText.position.z = restartBtn.position.z;
     restartText.position.y = restartBtn.position.y;
     restartText.scale.z = 0.00000001;
-    restartText.material.depthTest = false;
-    scene.add(restartBtn);
-    scene.add(restartText);
+    restartText.material.depthFunc = 7;
 }
+
 
 const raycaster = new THREE.Raycaster();
 const rayTouch = new THREE.Vector2();
@@ -235,8 +198,16 @@ const rayTouch = new THREE.Vector2();
 window.addEventListener('mousemove', onMouseMove);
 window.addEventListener('click', onClick);
 
-
-
+let textureFinger : THREE.Texture;
+textureFinger = await textureLoader.loadAsync("public/fingerIcon.png");
+let fingerPlaneGeometry = new THREE.PlaneGeometry(0.5,0.5);
+let fingerMaterial = new THREE.MeshBasicMaterial({map: textureFinger, transparent:true, depthFunc: 7});
+let finger = new THREE.Mesh(
+    fingerPlaneGeometry,
+    fingerMaterial
+);
+finger.scale.set(0.5,0.5,0.5);
+let fingerAnimFrame = 0;
 update();
 function update(){
     if (playerDeath == false){
@@ -254,6 +225,14 @@ function update(){
                 bomb.model.position.z)
                 createRestartButton(camera);
                 createInstallButton(camera);
+                scene.add(installBtn);
+                scene.add(installText);
+                scene.add(restartBtn);
+                scene.add(restartText);
+                finger.position.z = installBtn.position.z+0.2;
+                finger.position.y = installBtn.position.y-0.1;
+                finger.position.x = installBtn.position.x+0.2;
+                scene.add(finger);
             }
         }
     }
@@ -280,9 +259,17 @@ function update(){
             action.play();
             createRestartButton(camera);
             createInstallButton(camera);
+            scene.add(installBtn);
+            scene.add(installText);
+            scene.add(restartBtn);
+            scene.add(restartText);
+            finger.position.z = installBtn.position.z+0.2;
+            finger.position.y = installBtn.position.y-0.2;
+            finger.position.x = installBtn.position.x+0.2;
+            scene.add(finger);
         }
     }
-    for(let coin of coins){
+    for (let coin of coins) {
         coin.AnimationRotate(0.1);
         if (coin.OnTrigger(playerRun)){
             playCoinTake();
@@ -292,17 +279,27 @@ function update(){
             removeObject(coin.model);
             }
         }
-    for(let wrath of wraths){
+    for (let wrath of wraths) {
         if (wrath.OnEnterInWrath(playerRun)){
             player.score = wrath.wrathInteraction.doInteraction(player.score);
             updateTextMesh(scoreText, `${player.score}`)
             WrathSoundPlay();
         }
     }
+    if (fingerAnimFrame<=100) {
+    finger.position.x-=0.001;
+    fingerAnimFrame+=1;
+    }
+    else{
+        finger.position.x+=0.1;
+        fingerAnimFrame = 0;
+    }
+
     run(playerSpeed);
     playerAnimationMixer.update(0.01);
     renderer.render(scene, camera);
 }
+
 
 
 function removeObject(model:THREE.Object3D){
@@ -347,7 +344,6 @@ function NormalizeBGTexture(aspect) {
 
 window.addEventListener('touchmove', (clientTouch) => {
     touch.x = clientTouch.touches[0].clientX / window.innerWidth -0.5;
-    touch.y = clientTouch.touches[0].clientY / window.innerWidth -0.5;
     if (playerRun.position.x < -1 || playerRun.position.x > 1) {
         playerRun.position.x = 0;
     }
@@ -423,10 +419,10 @@ function createPlatform() {
     platformForRun.position.z = -8;
 }
 function addingGateInteraction() {
-    wraths[0].wrathInteraction = new WrathInteraction(wraths[0], interactionalWithScore.MULTIPLY, 4);
-    wraths[1].wrathInteraction = new WrathInteraction(wraths[1], interactionalWithScore.MINUS, 1);
-    wraths[2].wrathInteraction = new WrathInteraction(wraths[2], interactionalWithScore.PLUS, 2);
-    wraths[3].wrathInteraction = new WrathInteraction(wraths[3], interactionalWithScore.DIVIDE, 2);
+    wraths[0].wrathInteraction = new WrathInteraction(interactionalWithScore.MULTIPLY, 4);
+    wraths[1].wrathInteraction = new WrathInteraction(interactionalWithScore.MINUS, 1);
+    wraths[2].wrathInteraction = new WrathInteraction(interactionalWithScore.PLUS, 2);
+    wraths[3].wrathInteraction = new WrathInteraction(interactionalWithScore.DIVIDE, 2);
 
 }
 function createGameScene() {
@@ -488,7 +484,7 @@ async function createIteractionObject() {
 }
 
 function loadSounds() {
-    audioLoader.load('public/loopTrack.wav', function(buffer) {
+    audioLoader.load('public/loopTrack.mp3', function(buffer) {
         loopSound.setBuffer(buffer);
         loopSound.setLoop(true);
         loopSound.setVolume(0.5);
@@ -497,7 +493,7 @@ function loadSounds() {
         CoinHopSound.setBuffer(buffer);
         CoinHopSound.setVolume(0.5);
     });
-    audioLoader.load('public/explosion_small_no_tail_03.wav', function (buffer) {
+    audioLoader.load('public/explosion_small_no_tail_03.mp3', function (buffer) {
         BombHopSound.setBuffer(buffer);
         BombHopSound.setVolume(0.5);
     });
@@ -506,13 +502,14 @@ function loadSounds() {
         StepSound.setVolume(0.5);
         StepSound.setLoop(true);
     });
-    audioLoader.load('public/STGR_Fail_Lose_forMUSIC_A_1.wav', function (buffer) {
+    audioLoader.load('public/STGR_Fail_Lose_forMUSIC_A_1.mp3', function (buffer) {
         LoseMusic.setBuffer(buffer);
         LoseMusic.setVolume(0.5);
     });
-    audioLoader.load('public/STGR_Success_Win_forMUSIC_A_2.wav', function (buffer) {
+    audioLoader.load('public/STGR_Success_Win_forMUSIC_A_2.mp3', function (buffer) {
         WinMusic.setBuffer(buffer);
         WinMusic.setVolume(0.5);
+        WinMusic.setLoop(true);
     });
     audioLoader.load('public/SFX_UI_Appear_Generic_2.wav', function (buffer) {
         WrathSound.setBuffer(buffer);
@@ -543,8 +540,8 @@ function onClick() {
 
     if (intersects.length > 0) {
         const firstIntersect = intersects[0];
-        if(firstIntersect.object == buttonSound){
-            if(buttonSound.material.map == textureOffSound) {
+        if (firstIntersect.object == buttonSound){
+            if (buttonSound.material.map == textureOffSound) {
                 buttonSound.material.map = textureOnSound;
                 playTracks();
                 volume = true;
@@ -555,6 +552,9 @@ function onClick() {
                 volumeOff();
             }
         }
+        else if(firstIntersect.object == restartBtn){
+            location.reload();
+        }
     }
 }
 function volumeOff() {
@@ -563,10 +563,10 @@ function volumeOff() {
     StepSound.pause();
 }
 function playTracks() {
-    if(playerDeath!=true && win!=0) {
+    if (playerDeath!=true && win!=0) {
         loopSound.play();
         StepSound.play();
     }
-};
+}
 
 

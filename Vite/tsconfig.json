@@ -17,9 +17,6 @@
     "declarationMap": false,
     "skipLibCheck": true,
     "resolveJsonModule": true,
-    "paths": {
-      "@assets/*": ["assets/*"]
-    },
     "typeRoots": ["./node_modules/@types", "./node_modules/@furylion/troika-three-text-types"]
   },
   "include": [

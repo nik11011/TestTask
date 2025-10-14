@@ -1,5 +1,4 @@
-﻿import {FontLoader} from "three/examples/jsm/loaders/FontLoader";
-import * as THREE from "three";
+﻿import * as THREE from "three";
 interface TextSpriteOptions {
     font?: string;
     textColor?: string;

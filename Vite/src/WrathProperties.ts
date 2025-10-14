@@ -1,6 +1,4 @@
-﻿import {Wrath} from "./Wrath";
-
-
+﻿
 export enum interactionalWithScore{
     PLUS,
     MINUS,
@@ -12,13 +10,10 @@ export enum interactionalWithScore{
 export class WrathInteraction{
     private readonly numInteraction:number;
     private readonly operation:interactionalWithScore;
-    private wrath:Wrath;
-    constructor(_wrath:Wrath, _operation:interactionalWithScore, _numInteraction:number) {
-        this.wrath = _wrath;
+    constructor(_operation:interactionalWithScore, _numInteraction:number) {
         this.operation = _operation;
         this.numInteraction = _numInteraction;
     }
-
     public doInteraction(Num:number){
         switch (this.operation) {
             case interactionalWithScore.PLUS:

@@ -16,6 +16,7 @@
   "dependencies": {
     "@types/three": "^0.180.0",
     "three": "^0.180.0",
-    "three-fbx-loader": "^1.0.3"
+    "three-fbx-loader": "^1.0.3",
+    "vite-plugin-singlefile": "^2.3.0"
   }
 }

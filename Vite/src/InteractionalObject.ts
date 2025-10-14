@@ -1,4 +1,4 @@
-﻿import {Object3D, Object3DEventMap, Scene} from "three";
+﻿import {Object3D, Scene} from "three";
 
 
 export class InteractionalObject{
