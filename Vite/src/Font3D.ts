@@ -1,17 +1,13 @@
-﻿// textMeshUtils.ts
+﻿
 import * as THREE from "three";
 import { FontLoader } from "three/examples/jsm/loaders/FontLoader.js";
 import { TextGeometry } from "three/examples/jsm/geometries/TextGeometry.js";
 import {Font} from "three/examples/jsm/loaders/FontLoader.js";
 
-/**
- * Тип текстового меша для удобной типизации.
- */
+
 export type TextMesh = THREE.Mesh<TextGeometry, THREE.MeshPhongMaterial>;
 
-/**
- * Загружает шрифт по URL (однократно, с кэшированием).
- */
+
 let cachedFont: Font | null = null;
 
 async function loadFont(
@@ -25,12 +21,6 @@ async function loadFont(
     return cachedFont;
 }
 
-/**
- * Создаёт 3D-текстовый Mesh, который можно добавить в сцену.
- * @param text Текстовая строка
- * @param size Размер текста
- * @returns Promise<TextMesh>
- */
 export async function createTextMesh(
     text: string,
     size: number = 1,
@@ -56,11 +46,7 @@ export async function createTextMesh(
     return mesh;
 }
 
-/**
- * Обновляет текст внутри существующего TextMesh.
- * @param mesh Mesh, созданный через createTextMesh
- * @param newText Новый текст
- */
+
 export async function updateTextMesh(mesh: TextMesh, newText: string): Promise<void> {
     const font = await loadFont();
 
@@ -76,6 +62,6 @@ export async function updateTextMesh(mesh: TextMesh, newText: string): Promise<v
 
     newGeometry.center();
 
-    mesh.geometry.dispose(); // очистить старую геометрию
+    mesh.geometry.dispose();
     mesh.geometry = newGeometry;
 }

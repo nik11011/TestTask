@@ -37,8 +37,8 @@ createPlatform();
 editCameraPlacement();
 const light = new THREE.AmbientLight('#FFFFFF', 5);
 
-let scoreText = await createTextMesh("Score", 1, '#ca9100');
-scoreText.scale.set(0.5,0.5,0.0001);
+let scoreText = await createTextMesh("Take coin, avoid bomb", 1, '#ca9100');
+scoreText.scale.set(0.1,0.1,0.0001);
 scoreText.position.set(0, 1, -3)
 scene.add(scoreText);
 let textMeshWrath = await createTextMesh("x4", 0.5, "#0004ff");
@@ -153,41 +153,7 @@ let installBtn;
 let restartBtn;
 let installText = await createTextMesh('Install',1,'#000000');
 let restartText = await createTextMesh('Restart',1,'#000000');
-function createInstallButton(camera:THREE.Camera){
-    let installBtnGeometry = new THREE.PlaneGeometry(1,0.5);
-    let installBtnMaterial = new THREE.MeshBasicMaterial({color: "#baff93", depthFunc: 7});
-    installBtn = new THREE.Mesh(
-        installBtnGeometry,
-        installBtnMaterial
-    )
-    installText.scale.set(0.2,0.2,0.00001);
-    installBtn.position.x = camera.position.x;
-    installBtn.position.z = camera.position.z - 2;
-    installBtn.position.y = camera.position.y - 0.4;
-    installText.position.x = installBtn.position.x;
-    installText.position.z = installBtn.position.z;
-    installText.position.y = installBtn.position.y;
-    installText.scale.z = 0.00000001;
-    installText.material.depthFunc = 7;
-}
 
-function createRestartButton(camera:THREE.Camera){
-    let restartBtnGeometry = new THREE.PlaneGeometry(1,0.5);
-    let restartBtnMaterial = new THREE.MeshBasicMaterial({color: "#baff93", depthFunc: 7});
-    restartBtn = new THREE.Mesh(
-        restartBtnGeometry,
-        restartBtnMaterial
-    );
-    restartText.scale.set(0.2,0.2,0.00001)
-    restartBtn.position.x = camera.position.x;
-    restartBtn.position.z = camera.position.z - 2;
-    restartBtn.position.y = camera.position.y + 0.2;
-    restartText.position.x = restartBtn.position.x;
-    restartText.position.z = restartBtn.position.z;
-    restartText.position.y = restartBtn.position.y;
-    restartText.scale.z = 0.00000001;
-    restartText.material.depthFunc = 7;
-}
 
 
 const raycaster = new THREE.Raycaster();
@@ -364,6 +330,8 @@ window.addEventListener('touchstart',(clientTouch) => {
                 StepSound.play();
             }
             firstTouch = true;
+            scoreText.scale.set(0.5,0.5,0.0001);
+            updateTextMesh(scoreText, "Score")
             playerSpeed = -0.01;
             removeObject(playerIdle);
             scene.add(playerRun);
@@ -568,5 +536,39 @@ function playTracks() {
         StepSound.play();
     }
 }
+function createInstallButton(camera:THREE.Camera){
+    let installBtnGeometry = new THREE.PlaneGeometry(1,0.5);
+    let installBtnMaterial = new THREE.MeshBasicMaterial({color: "#baff93", depthFunc: 7});
+    installBtn = new THREE.Mesh(
+        installBtnGeometry,
+        installBtnMaterial
+    )
+    installText.scale.set(0.2,0.2,0.00001);
+    installBtn.position.x = camera.position.x;
+    installBtn.position.z = camera.position.z - 2;
+    installBtn.position.y = camera.position.y - 0.4;
+    installText.position.x = installBtn.position.x;
+    installText.position.z = installBtn.position.z;
+    installText.position.y = installBtn.position.y;
+    installText.scale.z = 0.00000001;
+    installText.material.depthFunc = 7;
+}
 
+function createRestartButton(camera:THREE.Camera){
+    let restartBtnGeometry = new THREE.PlaneGeometry(1,0.5);
+    let restartBtnMaterial = new THREE.MeshBasicMaterial({color: "#baff93", depthFunc: 7});
+    restartBtn = new THREE.Mesh(
+        restartBtnGeometry,
+        restartBtnMaterial
+    );
+    restartText.scale.set(0.2,0.2,0.00001)
+    restartBtn.position.x = camera.position.x;
+    restartBtn.position.z = camera.position.z - 2;
+    restartBtn.position.y = camera.position.y + 0.2;
+    restartText.position.x = restartBtn.position.x;
+    restartText.position.z = restartBtn.position.z;
+    restartText.position.y = restartBtn.position.y;
+    restartText.scale.z = 0.00000001;
+    restartText.material.depthFunc = 7;
+}
 
