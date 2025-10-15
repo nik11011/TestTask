@@ -13,6 +13,10 @@ let {clock, ticker, canvas, bgTexture, canvasAspect, player} = PreparationScene(
 let touch = {
     x: 0
 }
+let startX = 0;
+let currentX = 0;
+let moving = false;
+let targetRotate;
 let volume = false;
 const listener = new THREE.AudioListener();
 const audioLoader = new THREE.AudioLoader();
@@ -182,7 +186,6 @@ scene.add(fingerTutorial);
 let left = false;
 let right = true;
 
-
 update();
 function update(){
     Tutorial();
@@ -277,6 +280,9 @@ function update(){
     run(playerSpeed);
     }
     playerAnimationMixer.update(0.01);
+    if (!moving) {
+        playerRun.rotation.y += (targetRotate - playerRun.rotation.y) * 0.1;
+    }
     renderer.render(scene, camera);
 }
 
@@ -462,11 +468,12 @@ async function loadAnimation() {
     playerDance.position.y = -0.15;
     playerDance.scale.set(0.004, 0.004, 0.004);
     const playerRun = await importclass.importModel("public/Running.fbx");
-    playerRun.rotation.y = Math.PI * -1;
+    playerRun.rotation.y = Math.PI/1;
+    targetRotate = Math.PI/1;
     playerRun.position.y = -0.15;
     playerRun.scale.set(0.004, 0.004, 0.004);
     const playerIdle = await importclass.importModel("public/Idle.fbx");
-    playerIdle.rotation.y = Math.PI * -1;
+    playerIdle.rotation.y = Math.PI/1;
     playerIdle.position.y = -0.15;
     playerIdle.scale.set(0.004, 0.004, 0.004);
     return {playerDance, playerRun, playerIdle};
@@ -524,7 +531,42 @@ async function createAudio() {
 }
 
 
-function moveToSide(clientX) {
+
+window.addEventListener('touchstart', onTouchStart);
+window.addEventListener('touchend', onTouchEnd);
+window.addEventListener('mousedown', onMouseDown);
+window.addEventListener('mouseup', onMouseUp);
+
+function onTouchStart(event: TouchEvent) {
+    startX = event.touches[0].clientX;
+    moving = true;
+}
+
+function onTouchMove(event: TouchEvent) {
+    if (!moving) return;
+    currentX = event.touches[0].clientX;
+    moveToSide(currentX - startX);
+}
+
+function onTouchEnd() {
+    moving = false;
+}
+
+function onMouseDown(event: MouseEvent) {
+    startX = event.clientX;
+    moving = true;
+}
+
+function onMouseMove(event: MouseEvent) {
+    if (!moving) return;
+    currentX = event.clientX;
+    moveToSide(currentX - startX);
+}
+
+function onMouseUp() {
+    moving = false;
+}
+/*function moveToSide(clientX) {
     if (firstTouch == false) {
     } else if (firstTouch == true) {
         touch.x = clientX / window.innerWidth - 0.5;
@@ -535,16 +577,36 @@ function moveToSide(clientX) {
             playerRun.rotation.y -= touch.x * sideMoveSpeed;
         }
     }
+}*/
+function moveToSide(deltaX: number) {
+    if (!firstTouch) return;
+    // Нормализуем дельту
+    const normalized = deltaX / window.innerWidth;
+
+    // Ограничиваем X в пределах
+    if (playerRun.position.x < -1) playerRun.position.x = -1;
+    if (playerRun.position.x > 1) playerRun.position.x = 1;
+
+    // Двигаем вбок
+    playerRun.position.x += normalized * sideMoveSpeed;
+
+    // Целевой угол поворота
+    const targetRotationY = -targetRotate + normalized * 1;
+
+    // Плавное выравнивание и поворот
+    playerRun.rotation.y += (- targetRotationY - playerRun.rotation.y) * 0.1;
 }
 
-function onTouchMove(event: TouchEvent){
+
+
+/*function onTouchMove(event: TouchEvent){
     moveToSide(event.touches[0].clientX)
 }
 function onMouseMove(event: MouseEvent) {
     rayTouch.x = (event.clientX / window.innerWidth) * 2 - 1;
     rayTouch.y = -(event.clientY / window.innerHeight) * 2 + 1;
     moveToSide(event.clientX);
-}
+}*/
 
 window.addEventListener('touchmove', onTouchMove);
 window.addEventListener('mousemove', onMouseMove);
