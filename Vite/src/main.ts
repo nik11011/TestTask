@@ -583,11 +583,11 @@ function moveToSide() {
 
     // движение в стороны
     playerRun.position.x += normalized * sideMoveSpeed;
-    playerRun.position.x = THREE.MathUtils.clamp(playerRun.position.x, -1, 1);
 
-    // поворот
     const targetRotationY = targetRotate - normalized * 0.5;
     playerRun.rotation.y += (targetRotationY - playerRun.rotation.y) * 0.1;
+    if(playerRun.position.x > 1) playerRun.position.x = 1;
+    if(playerRun.position.x < -1) playerRun.position.x = -1;
 }
 
 /*function onTouchMove(event: TouchEvent){
