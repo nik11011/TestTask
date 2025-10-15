@@ -9,7 +9,7 @@ import {Object3DEventMap} from "three";
 import {Explosive} from "./Explosive";
 import {createTextMesh, updateTextMesh} from "./Font3D";
 
-let {clock, ticker, canvas, bgTexture, canvasAspect, player} = PreparationScene();
+let {clock, deltaTime, canvas, bgTexture, canvasAspect, player} = PreparationScene();
 let touch = {
     x: 0
 }
@@ -38,9 +38,9 @@ const renderer = new THREE.WebGLRenderer({
 renderer.setSize(window.innerWidth, window.innerHeight);
 const {camera, scene} = CreateCameraAndScene();
 const platformForRun = new THREE.Mesh(
-    new THREE.BoxGeometry(2, 1, 20),
+    new THREE.BoxGeometry(2, 1, 40),
     new THREE.MeshBasicMaterial(
-        {color: '#ffffff',}
+        {color: '#ffffff', shadowSide: true}
     ));
 createPlatform();
 const light = new THREE.AmbientLight('#FFFFFF', 5);
@@ -185,7 +185,6 @@ let fingerTutorial = new THREE.Mesh(
 scene.add(fingerTutorial);
 let left = false;
 let right = true;
-
 update();
 function update(){
     Tutorial();
@@ -221,9 +220,9 @@ function update(){
     const imageAspect = bgTexture.image ? bgTexture.image.width / bgTexture.image.height : 1;
     const aspect = imageAspect / canvasAspect;
     NormalizeBGTexture(aspect)
-    ticker += clock.getElapsedTime();
+    deltaTime += clock.getElapsedTime();
     window.requestAnimationFrame(update);
-    if (playerRun.position.z <= -18) {
+    if (playerRun.position.z <= -24) {
         if (win == 0) {
             win+=1;
             playWinSounds();
@@ -283,6 +282,7 @@ function update(){
     if (!moving) {
         playerRun.rotation.y += (targetRotate - playerRun.rotation.y) * 0.1;
     }
+    console.log(deltaTime);
     renderer.render(scene, camera);
 }
 
@@ -359,18 +359,24 @@ function NormalizeBGTexture(aspect) {
 
 async function loadWrathArray() {
     wraths.push(
-        new Wrath(scene, -0.5, -3,
+        new Wrath(scene, -0.5, -4,
             await importclass.importModel("public/Wrath.fbx"),
             await createTextMesh("x4", 0.5, "#0004ff")),
-        new Wrath(scene, 0.5, -3,
+        new Wrath(scene, 0.5, -4,
             await importclass.importModel("public/Wrath.fbx"),
             await createTextMesh("-1", 0.5, "#fd0000")),
-        new Wrath(scene, -0.5, -9.5,
+        new Wrath(scene, -0.5, -12,
             await importclass.importModel("public/Wrath.fbx"),
             await createTextMesh("+2", 0.5, "#0004ff")),
-        new Wrath(scene, 0.5, -9.5,
+        new Wrath(scene, 0.5, -12,
             await importclass.importModel("public/Wrath.fbx"),
-            await createTextMesh("/2", 0.5, "#ff0000"))
+            await createTextMesh("/2", 0.5, "#ff0000")),
+        new Wrath(scene, -0.5, -20,
+            await importclass.importModel("public/Wrath.fbx"),
+            await createTextMesh("/5", 0.5, "#ff0000")),
+        new Wrath(scene, 0.5, -20,
+            await importclass.importModel("public/Wrath.fbx"),
+            await createTextMesh("*4", 0.5, "#0004ff"))
     );
 }
 
@@ -378,34 +384,36 @@ async function loadWrathArray() {
 async function loadCoinArray() {
     coins.push(
         new Coin(scene, -0.5, -1, await importclass.importModel("public/Coin_Reskin.fbx")),
-        new Coin(scene, -0.5, -2, await importclass.importModel("public/Coin_Reskin.fbx")),
-        new Coin(scene, +0.5, -4, await importclass.importModel("public/Coin_Reskin.fbx")),
-        new Coin(scene, -0.5, -5, await importclass.importModel("public/Coin_Reskin.fbx")),
-        new Coin(scene, +0.5, -7, await importclass.importModel("public/Coin_Reskin.fbx")),
-        new Coin(scene, +0.5, -8, await importclass.importModel("public/Coin_Reskin.fbx")),
-        new Coin(scene, -0.5, -9, await importclass.importModel("public/Coin_Reskin.fbx")),
-        new Coin(scene, -0.5, -11, await importclass.importModel("public/Coin_Reskin.fbx")),
-        new Coin(scene, -0.5, -11, await importclass.importModel("public/Coin_Reskin.fbx"))
+        new Coin(scene, -0.5, -3, await importclass.importModel("public/Coin_Reskin.fbx")),
+        new Coin(scene, +0.5, -5, await importclass.importModel("public/Coin_Reskin.fbx")),
+        new Coin(scene, -0.5, -7, await importclass.importModel("public/Coin_Reskin.fbx")),
+        new Coin(scene, +0.5, -9, await importclass.importModel("public/Coin_Reskin.fbx")),
+        new Coin(scene, +0.5, -11, await importclass.importModel("public/Coin_Reskin.fbx")),
+        new Coin(scene, +0.5, -13, await importclass.importModel("public/Coin_Reskin.fbx")),
+        new Coin(scene, +0.5, -16, await importclass.importModel("public/Coin_Reskin.fbx")),
+        new Coin(scene, -0.5, -19, await importclass.importModel("public/Coin_Reskin.fbx"))
     );
 }
 
 async function loadBombArray() {
     bombs.push(
-        new Bomb(scene, 0.5, -2, await importclass.importModel("public/bomb.fbx")),
-        new Bomb(scene, 0.5, -6, await importclass.importModel("public/bomb.fbx")),
-        new Bomb(scene, -0.5, -7, await importclass.importModel("public/bomb.fbx")),
-        new Bomb(scene, -0.5, -8, await importclass.importModel("public/bomb.fbx"))
+        new Bomb(scene, 0.5, -5, await importclass.importModel("public/bomb.fbx")),
+        new Bomb(scene, 0.5, -9, await importclass.importModel("public/bomb.fbx")),
+        new Bomb(scene, -0.5, -10, await importclass.importModel("public/bomb.fbx")),
+        new Bomb(scene, -0.5, -15, await importclass.importModel("public/bomb.fbx"))
     );
 }
 function createPlatform() {
     platformForRun.position.y = -0.65;
-    platformForRun.position.z = -8;
+    platformForRun.position.z = -18;
 }
 function addingGateInteraction() {
     wraths[0].wrathInteraction = new WrathInteraction(interactionalWithScore.MULTIPLY, 4);
     wraths[1].wrathInteraction = new WrathInteraction(interactionalWithScore.MINUS, 1);
     wraths[2].wrathInteraction = new WrathInteraction(interactionalWithScore.PLUS, 2);
     wraths[3].wrathInteraction = new WrathInteraction(interactionalWithScore.DIVIDE, 2);
+    wraths[4].wrathInteraction = new WrathInteraction(interactionalWithScore.DIVIDE, 5);
+    wraths[5].wrathInteraction = new WrathInteraction(interactionalWithScore.MULTIPLY, 4);
 
 }
 function createGameScene() {
@@ -415,13 +423,13 @@ function createGameScene() {
 }
 function PreparationScene() {
     const clock = new THREE.Clock();
-    let ticker = 0;
+    let deltaTime = 0;
     const canvas: Element = document.querySelector('#c');
     const loader = new THREE.TextureLoader();
     const bgTexture = loader.load('public/SkyBox.jpg')
     let canvasAspect = canvas.clientWidth / canvas.clientHeight
     const player = new Player();
-    return {clock, ticker, canvas, bgTexture, canvasAspect, player};
+    return {clock, deltaTime, canvas, bgTexture, canvasAspect, player};
 }
 
 
@@ -639,7 +647,7 @@ function onClick() {
                     firstTouch = true;
                     scoreText.scale.set(0.1,0.1,0.0001);
                     updateTextMesh(scoreText, "Score");
-                    playerSpeed = -0.01;
+                    playerSpeed = -0.03;
                     removeObject(playerIdle);
                     scene.add(playerRun);
                     playerAnimationMixer = new THREE.AnimationMixer(playerRun);
