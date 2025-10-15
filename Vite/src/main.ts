@@ -188,6 +188,7 @@ let right = true;
 update();
 function update(){
     Tutorial();
+    moveToSide();
     if (playerDeath == false){
         for(let bomb of bombs){
             if (bomb.OnTrigger(playerRun)){
@@ -544,16 +545,15 @@ window.addEventListener('touchstart', onTouchStart);
 window.addEventListener('touchend', onTouchEnd);
 window.addEventListener('mousedown', onMouseDown);
 window.addEventListener('mouseup', onMouseUp);
-
 function onTouchStart(event: TouchEvent) {
     startX = event.touches[0].clientX;
+    currentX = startX;
     moving = true;
 }
 
 function onTouchMove(event: TouchEvent) {
     if (!moving) return;
     currentX = event.touches[0].clientX;
-    moveToSide(currentX - startX);
 }
 
 function onTouchEnd() {
@@ -562,50 +562,33 @@ function onTouchEnd() {
 
 function onMouseDown(event: MouseEvent) {
     startX = event.clientX;
+    currentX = startX;
     moving = true;
 }
 
 function onMouseMove(event: MouseEvent) {
     if (!moving) return;
     currentX = event.clientX;
-    moveToSide(currentX - startX);
 }
 
 function onMouseUp() {
     moving = false;
 }
-/*function moveToSide(clientX) {
-    if (firstTouch == false) {
-    } else if (firstTouch == true) {
-        touch.x = clientX / window.innerWidth - 0.5;
-        if (playerRun.position.x < -1 || playerRun.position.x > 1) {
-            playerRun.position.x = 0;
-        } else {
-            playerRun.position.x += touch.x * sideMoveSpeed;
-            playerRun.rotation.y -= touch.x * sideMoveSpeed;
-        }
-    }
-}*/
-function moveToSide(deltaX: number) {
+
+function moveToSide() {
     if (!firstTouch) return;
-    // Нормализуем дельту
+
+    const deltaX = currentX - startX;
     const normalized = deltaX / window.innerWidth;
 
-    // Ограничиваем X в пределах
-    if (playerRun.position.x < -1) playerRun.position.x = -1;
-    if (playerRun.position.x > 1) playerRun.position.x = 1;
-
-    // Двигаем вбок
+    // движение в стороны
     playerRun.position.x += normalized * sideMoveSpeed;
+    playerRun.position.x = THREE.MathUtils.clamp(playerRun.position.x, -1, 1);
 
-    // Целевой угол поворота
-    const targetRotationY = -targetRotate + normalized * 1;
-
-    // Плавное выравнивание и поворот
-    playerRun.rotation.y += (- targetRotationY - playerRun.rotation.y) * 0.1;
+    // поворот
+    const targetRotationY = targetRotate - normalized * 0.5;
+    playerRun.rotation.y += (targetRotationY - playerRun.rotation.y) * 0.1;
 }
-
-
 
 /*function onTouchMove(event: TouchEvent){
     moveToSide(event.touches[0].clientX)
