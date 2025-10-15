@@ -13,6 +13,7 @@ let {clock, deltaTime, canvas, bgTexture, canvasAspect, player} = PreparationSce
 let touch = {
     x: 0
 }
+let deltaX = 0;
 let startX = 0;
 let currentX = 0;
 let moving = false;
@@ -40,7 +41,7 @@ const {camera, scene} = CreateCameraAndScene();
 const platformForRun = new THREE.Mesh(
     new THREE.BoxGeometry(2, 1, 40),
     new THREE.MeshBasicMaterial(
-        {color: '#ffffff', shadowSide: true}
+        {color: '#ffffff'}
     ));
 createPlatform();
 const light = new THREE.AmbientLight('#FFFFFF', 5);
@@ -578,26 +579,20 @@ function onMouseUp() {
 function moveToSide() {
     if (!firstTouch) return;
 
-    const deltaX = currentX - startX;
+    deltaX = currentX - startX;
     const normalized = deltaX / window.innerWidth;
 
-    // движение в стороны
     playerRun.position.x += normalized * sideMoveSpeed;
 
     const targetRotationY = targetRotate - normalized * 0.5;
     playerRun.rotation.y += (targetRotationY - playerRun.rotation.y) * 0.1;
     if(playerRun.position.x > 1) playerRun.position.x = 1;
     if(playerRun.position.x < -1) playerRun.position.x = -1;
+    if(!moving){
+        currentX *= clock.getDelta();
+        startX *= clock.getDelta();
+    }
 }
-
-/*function onTouchMove(event: TouchEvent){
-    moveToSide(event.touches[0].clientX)
-}
-function onMouseMove(event: MouseEvent) {
-    rayTouch.x = (event.clientX / window.innerWidth) * 2 - 1;
-    rayTouch.y = -(event.clientY / window.innerHeight) * 2 + 1;
-    moveToSide(event.clientX);
-}*/
 
 window.addEventListener('touchmove', onTouchMove);
 window.addEventListener('mousemove', onMouseMove);
