@@ -20,6 +20,11 @@ const {loopSound, CoinHopSound, BombHopSound, StepSound, LoseMusic, WinMusic, Wr
 loadSounds()
 
 let firstTouch = false;
+let cameraIndent = {
+    x:0,
+    y:0,
+    z:0
+}
 
 NormalizeBGTexture(canvasAspect);
 const renderer = new THREE.WebGLRenderer({
@@ -34,28 +39,19 @@ const platformForRun = new THREE.Mesh(
         {color: '#ffffff',}
     ));
 createPlatform();
-editCameraPlacement();
 const light = new THREE.AmbientLight('#FFFFFF', 5);
 
-let scoreText = await createTextMesh("Take coin, avoid bomb", 1, '#ca9100');
+let scoreText = await createTextMesh("Take coin, avoid bomb", 0.5, '#ca9100');
 scoreText.scale.set(0.1,0.1,0.0001);
-scoreText.position.set(0, 1, -3)
+scoreText.position.set(0, 0, 0);
+scoreText.material.depthFunc = 7;
+scoreText.lookAt(
+    camera.position.x,
+    camera.position.y-1,
+    camera.position.z);
 scene.add(scoreText);
-let textMeshWrath = await createTextMesh("x4", 0.5, "#0004ff");
-textMeshWrath.position.set(-0.5,0.5,-3);
-let textMeshWrath1 = await createTextMesh("-1", 0.5, "#fd0000");
-textMeshWrath1.position.set(0.5,0.5,-3);
-let textMeshWrath2 = await createTextMesh("+2", 0.5, "#0004ff");
-textMeshWrath2.position.set(-0.5,0.5,-9.5);
-let textMeshWrath3 = await createTextMesh("/2", 0.5, "#ff0000");
-textMeshWrath3.position.set(0.5,0.5,-9.5);
-scene.add(textMeshWrath);
-scene.add(textMeshWrath1);
-scene.add(textMeshWrath2);
-scene.add(textMeshWrath3);
-
-
 createGameScene();
+
 
 camera.add(listener);
 const importclass = new AssetLoader();
@@ -64,13 +60,14 @@ let bombs = new Array<Bomb>();
 let wraths = new Array<Wrath>();
 await createIteractionObject();
 addingGateInteraction();
+
 const {playerDance, playerRun, playerIdle} = await loadAnimation();
 let playerAnimationMixer = new THREE.AnimationMixer(playerIdle);
 let action = playerAnimationMixer.clipAction(playerIdle.animations[0]);
 action.play();
 scene.add(playerIdle);
 let playerSpeed = 0;
-let sideMoveSpeed = 0.1;
+let sideMoveSpeed = 0.05;
 let expl = new Explosive();
 let playerDeath = false;
 function playLoseSounds() {
@@ -124,13 +121,18 @@ function WrathSoundPlay() {
         WrathSound.pause();
     }
 }
-let redPlaneGeometry = new THREE.PlaneGeometry(2.4,0.75)
+let redPlaneGeometry = new THREE.PlaneGeometry(0.75,0.25);
 let redPlaneMaterial = new THREE.MeshBasicMaterial({color: "#730000"});
 let redPlane = new THREE.Mesh(
     redPlaneGeometry,
     redPlaneMaterial
 );
-coins[8].model.scale.set(4,4,4);
+redPlane.lookAt(
+    camera.position.x,
+    camera.position.y-1,
+    camera.position.z,
+);
+coins[8].model.scale.set(0.5,0.5,0.5);
 scene.add(redPlane);
 
 let textureLoader = new THREE.TextureLoader();
@@ -147,22 +149,20 @@ let buttonSound = new THREE.Mesh(
     buttonSoundGeometry,
     buttonOfSound
 );
-//buttonSound.scale()
+buttonSound.scale.set(0.3,0.3,0.3);
 scene.add(buttonSound)
 let installBtn;
 let restartBtn;
 let installText = await createTextMesh('Install',1,'#000000');
 let restartText = await createTextMesh('Restart',1,'#000000');
 
-
+SizeOnScreen();
 
 const raycaster = new THREE.Raycaster();
 const rayTouch = new THREE.Vector2();
 
 
 
-window.addEventListener('mousemove', onMouseMove);
-window.addEventListener('click', onClick);
 
 let textureFinger : THREE.Texture;
 textureFinger = await textureLoader.loadAsync("public/fingerIcon.png");
@@ -174,8 +174,18 @@ let finger = new THREE.Mesh(
 );
 finger.scale.set(0.5,0.5,0.5);
 let fingerAnimFrame = 0;
+let fingerTutorial = new THREE.Mesh(
+    fingerPlaneGeometry,
+    fingerMaterial
+)
+scene.add(fingerTutorial);
+let left = false;
+let right = true;
+
+
 update();
 function update(){
+    Tutorial();
     if (playerDeath == false){
         for(let bomb of bombs){
             if (bomb.OnTrigger(playerRun)){
@@ -250,6 +260,8 @@ function update(){
             player.score = wrath.wrathInteraction.doInteraction(player.score);
             updateTextMesh(scoreText, `${player.score}`)
             WrathSoundPlay();
+            removeObject(wrath.model);
+            updateTextMesh(wrath.textMesh, "");
         }
     }
     if (fingerAnimFrame<=100) {
@@ -260,12 +272,49 @@ function update(){
         finger.position.x+=0.1;
         fingerAnimFrame = 0;
     }
-
+    if(firstTouch)
+    {
     run(playerSpeed);
+    }
     playerAnimationMixer.update(0.01);
     renderer.render(scene, camera);
 }
 
+function MoveToLeftPosition() {
+    if (fingerTutorial.position.x >= -0.3) {
+        fingerTutorial.position.x -= 0.01;
+    } else {
+        right = false;
+        left = true;
+    }
+}
+
+function MoveToRightPosition() {
+    if (fingerTutorial.position.x <= 0.4) {
+        fingerTutorial.position.x += 0.01;
+    } else {
+        right = true;
+        left = false;
+    }
+}
+
+function AnimationTutorial() {
+    if (left == false) {
+        MoveToLeftPosition();
+    }
+    if (right == false) {
+        MoveToRightPosition();
+    }
+}
+
+function Tutorial(){
+    if (firstTouch == false){
+        AnimationTutorial();
+    }
+    else{
+        scene.remove(fingerTutorial);
+    }
+}
 
 
 function removeObject(model:THREE.Object3D){
@@ -273,28 +322,18 @@ function removeObject(model:THREE.Object3D){
     model.clear();
 }
 function glueCameraTo(playerModel:THREE.Object3D<Object3DEventMap>, camera:THREE.Camera) {
-    camera.position.x = playerModel.position.x;
-    camera.position.z = playerModel.position.z + 3;
-    camera.position.y = playerModel.position.y + 0.5;
-    scoreText.position.set(
-        playerModel.position.x+0.2,
-        playerModel.position.y+2.5,
-        playerModel.position.z-3
-    )
-    coins[8].model.position.set(
-        playerModel.position.x-1.2,
-        scoreText.position.y,
-        scoreText.position.z,
-    );
-
-    redPlane.position.x=playerModel.position.x;
-    redPlane.position.y=scoreText.position.y;
-    redPlane.position.z=scoreText.position.z;
-    buttonSound.position.set(
-        camera.position.x - 0.2,
-        camera.position.y - 0.45,
-        camera.position.z - 1,
-    )
+        camera.position.x = playerModel.position.x;
+        camera.position.z = playerModel.position.z + cameraIndent.z;
+        scoreText.position.set(
+            playerModel.position.x,
+            playerModel.position.y + 2.1,
+            playerModel.position.z - 1
+        )
+        buttonSound.position.set(
+            camera.position.x - 0.13,
+            camera.position.y - 0.5,
+            camera.position.z - 0.3
+        )
 }
 function run(speed:number) {
         playerRun.position.z += speed;
@@ -308,55 +347,25 @@ function NormalizeBGTexture(aspect) {
     bgTexture.repeat.y = aspect > 1 ? 1 : aspect;
 }
 
-window.addEventListener('touchmove', (clientTouch) => {
-    touch.x = clientTouch.touches[0].clientX / window.innerWidth -0.5;
-    if (playerRun.position.x < -1 || playerRun.position.x > 1) {
-        playerRun.position.x = 0;
-    }
-    else {
-        playerRun.position.x += touch.x * sideMoveSpeed;
-    }
-})
 
-window.addEventListener('touchstart',(clientTouch) => {
-    clientTouch.stopPropagation();
-    if (win == 0) {
-        if (firstTouch == false) {
-            if (volume == false && playerDeath!=true) {
-                loopSound.pause();
-                StepSound.pause();
-            } else {
-                loopSound.play();
-                StepSound.play();
-            }
-            firstTouch = true;
-            scoreText.scale.set(0.5,0.5,0.0001);
-            updateTextMesh(scoreText, "Score")
-            playerSpeed = -0.01;
-            removeObject(playerIdle);
-            scene.add(playerRun);
-            playerAnimationMixer = new THREE.AnimationMixer(playerRun);
-            action = playerAnimationMixer.clipAction(playerRun.animations[0]);
-            action.play();
-        } else {
-            if (volume == true) {
-                loopSound.play();
-                StepSound.play();
-            }
-        }
-    }
-})
+
 
 
 async function loadWrathArray() {
     wraths.push(
-        new Wrath(scene, -0.5, -3, await importclass.importModel("public/Wrath.fbx")),
-        new Wrath(scene, 0.5, -3, await importclass.importModel("public/Wrath.fbx")),
-        new Wrath(scene, -0.5, -9.5, await importclass.importModel("public/Wrath.fbx")),
-        new Wrath(scene, 0.5, -9.5, await importclass.importModel("public/Wrath.fbx"))
+        new Wrath(scene, -0.5, -3,
+            await importclass.importModel("public/Wrath.fbx"),
+            await createTextMesh("x4", 0.5, "#0004ff")),
+        new Wrath(scene, 0.5, -3,
+            await importclass.importModel("public/Wrath.fbx"),
+            await createTextMesh("-1", 0.5, "#fd0000")),
+        new Wrath(scene, -0.5, -9.5,
+            await importclass.importModel("public/Wrath.fbx"),
+            await createTextMesh("+2", 0.5, "#0004ff")),
+        new Wrath(scene, 0.5, -9.5,
+            await importclass.importModel("public/Wrath.fbx"),
+            await createTextMesh("/2", 0.5, "#ff0000"))
     );
-
-
 }
 
 
@@ -398,10 +407,6 @@ function createGameScene() {
     scene.add(light);
     scene.add(camera);
 }
-function editCameraPlacement() {
-    camera.position.z = 1;
-    camera.position.y = 0.5;
-}
 function PreparationScene() {
     const clock = new THREE.Clock();
     let ticker = 0;
@@ -413,21 +418,43 @@ function PreparationScene() {
     return {clock, ticker, canvas, bgTexture, canvasAspect, player};
 }
 
+
 function CreateCameraAndScene() {
     const axesHelper = new THREE.AxesHelper(3);
-    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight);
+    const camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight);
     const scene = new THREE.Scene();
     scene.background = bgTexture;
     return {axesHelper, camera, scene};
 }
-window.addEventListener('resize', ()=>{
 
+function SizeOnScreen() {
+    if(window.innerWidth>window.innerHeight){
+        camera.fov = 30;
+        camera.position.y = 2;
+        cameraIndent.z = 5;
+        camera.position.z = playerRun.position.z + cameraIndent.z;
+        camera.lookAt(
+            playerRun.position.x,
+            playerRun.position.y,
+            playerRun.position.z-2);
+    }
+    else if(window.innerHeight>window.innerWidth) {
+        camera.fov = 55;
+        camera.position.y = 2;
+        cameraIndent.z = 3;
+        camera.position.z = playerRun.position.z + cameraIndent.z;
+        camera.lookAt(
+            playerRun.position.x,
+            playerRun.position.y,
+            playerRun.position.z-1);
+    }
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight)
+}
 
-    renderer.setSize(window.innerWidth,window.innerHeight)
-    renderer.render(scene, camera);
-})
+//screen.orientation.addEventListener('change', SizeOnScreen);
+window.addEventListener('resize', SizeOnScreen);
 
 async function loadAnimation() {
     const playerDance = await importclass.importModel("public/Dance.fbx");
@@ -435,7 +462,7 @@ async function loadAnimation() {
     playerDance.position.y = -0.15;
     playerDance.scale.set(0.004, 0.004, 0.004);
     const playerRun = await importclass.importModel("public/Running.fbx");
-    playerRun.rotation.y = Math.PI * 1;
+    playerRun.rotation.y = Math.PI * -1;
     playerRun.position.y = -0.15;
     playerRun.scale.set(0.004, 0.004, 0.004);
     const playerIdle = await importclass.importModel("public/Idle.fbx");
@@ -479,7 +506,7 @@ function loadSounds() {
         WinMusic.setVolume(0.5);
         WinMusic.setLoop(true);
     });
-    audioLoader.load('public/SFX_UI_Appear_Generic_2.wav', function (buffer) {
+    audioLoader.load('public/SFX_UI_Appear_Generic_2.mp3', function (buffer) {
         WrathSound.setBuffer(buffer);
         WrathSound.setVolume(0.5);
     });
@@ -497,16 +524,37 @@ async function createAudio() {
 }
 
 
+function moveToSide(clientX) {
+    if (firstTouch == false) {
+    } else if (firstTouch == true) {
+        touch.x = clientX / window.innerWidth - 0.5;
+        if (playerRun.position.x < -1 || playerRun.position.x > 1) {
+            playerRun.position.x = 0;
+        } else {
+            playerRun.position.x += touch.x * sideMoveSpeed;
+            playerRun.rotation.y -= touch.x * sideMoveSpeed;
+        }
+    }
+}
+
+function onTouchMove(event: TouchEvent){
+    moveToSide(event.touches[0].clientX)
+}
 function onMouseMove(event: MouseEvent) {
     rayTouch.x = (event.clientX / window.innerWidth) * 2 - 1;
     rayTouch.y = -(event.clientY / window.innerHeight) * 2 + 1;
+    moveToSide(event.clientX);
 }
 
+window.addEventListener('touchmove', onTouchMove);
+window.addEventListener('mousemove', onMouseMove);
+window.addEventListener('click', onClick);
+window.addEventListener('touchstart', onClick);
 function onClick() {
     raycaster.setFromCamera(rayTouch, camera);
     const intersects = raycaster.intersectObjects(scene.children, false);
-
-    if (intersects.length > 0) {
+    if (intersects.length > 0)
+    {
         const firstIntersect = intersects[0];
         if (firstIntersect.object == buttonSound){
             if (buttonSound.material.map == textureOffSound) {
@@ -522,6 +570,21 @@ function onClick() {
         }
         else if(firstIntersect.object == restartBtn){
             location.reload();
+        }
+        else {
+            if (win == 0) {
+                if (firstTouch == false) {
+                    firstTouch = true;
+                    scoreText.scale.set(0.1,0.1,0.0001);
+                    updateTextMesh(scoreText, "Score");
+                    playerSpeed = -0.01;
+                    removeObject(playerIdle);
+                    scene.add(playerRun);
+                    playerAnimationMixer = new THREE.AnimationMixer(playerRun);
+                    action = playerAnimationMixer.clipAction(playerRun.animations[0]);
+                    action.play();
+                }
+            }
         }
     }
 }

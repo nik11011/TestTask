@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "build:html": "vite build && node inline.js"
   },
   "devDependencies": {
     "@types/node": "^24.5.2",

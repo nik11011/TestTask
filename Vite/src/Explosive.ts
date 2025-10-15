@@ -43,7 +43,6 @@ export class Explosive{
     const positions = this.geometry.attributes.position.array;
     const velocities = this.geometry.attributes.velocity.array;
     for (let i = 0; i < positions.length; i += 3) {
-        // Обновление положения
         positions[i] += velocities[i] * 0.01;
         positions[i + 1] += velocities[i + 1] * 0.01;
         positions[i + 2] += velocities[i + 2] * 0.01;
