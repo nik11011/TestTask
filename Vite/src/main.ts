@@ -72,7 +72,7 @@ let action = playerAnimationMixer.clipAction(playerIdle.animations[0]);
 action.play();
 scene.add(playerIdle);
 let playerSpeed = 0;
-let sideMoveSpeed = 0.05;
+let sideMoveSpeed = 2500;
 let expl = new Explosive();
 let playerDeath = false;
 function playLoseSounds() {
@@ -222,7 +222,6 @@ function update(){
     const imageAspect = bgTexture.image ? bgTexture.image.width / bgTexture.image.height : 1;
     const aspect = imageAspect / canvasAspect;
     NormalizeBGTexture(aspect)
-    deltaTime += clock.getElapsedTime();
     window.requestAnimationFrame(update);
     if (playerRun.position.z <= -24) {
         if (win == 0) {
@@ -282,7 +281,7 @@ function update(){
     }
     playerAnimationMixer.update(0.01);
     if (!moving) {
-        playerRun.rotation.y += (targetRotate - playerRun.rotation.y) * 0.1;
+        playerRun.rotation.y += (targetRotate - playerRun.rotation.y) * 0.5;
     }
     console.log(deltaTime);
     renderer.render(scene, camera);
@@ -578,20 +577,19 @@ function onMouseUp() {
 
 function moveToSide() {
     if (!firstTouch) return;
-
+    const lerpFactor = 0.1
     deltaX = currentX - startX;
+    startX = currentX;
     const normalized = deltaX / window.innerWidth;
 
-    playerRun.position.x += normalized * sideMoveSpeed;
+    const targetX = playerRun.position.x + normalized * sideMoveSpeed * clock.getDelta();
+    playerRun.position.x = THREE.MathUtils.lerp(playerRun.position.x, targetX, lerpFactor);
 
-    const targetRotationY = targetRotate - normalized * 0.5;
-    playerRun.rotation.y += (targetRotationY - playerRun.rotation.y) * 0.1;
+    const targetRotationY = targetRotate - normalized * 30;
+    playerRun.rotation.y = THREE.MathUtils.lerp(playerRun.rotation.y, targetRotationY, lerpFactor);
+
     if(playerRun.position.x > 1) playerRun.position.x = 1;
     if(playerRun.position.x < -1) playerRun.position.x = -1;
-    if(!moving){
-        currentX *= clock.getDelta();
-        startX *= clock.getDelta();
-    }
 }
 
 window.addEventListener('touchmove', onTouchMove);
