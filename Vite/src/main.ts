@@ -13,6 +13,12 @@ let {clock, deltaTime, canvas, bgTexture, canvasAspect, player} = PreparationSce
 let touch = {
     x: 0
 }
+let targetFPS = 60;
+let fixedDelta = 1.0 / targetFPS;
+let accumulatedTime = 0.0;
+let prevTime
+let prevZ = 0;
+let deltaZ;
 let deltaX = 0;
 let startX = 0;
 let currentX = 0;
@@ -188,6 +194,9 @@ let left = false;
 let right = true;
 update();
 function update(){
+    let delta = clock.getDelta();
+    accumulatedTime += delta;
+    accumulatedTime -= fixedDelta;
     Tutorial();
     moveToSide();
     if (playerDeath == false){
@@ -343,7 +352,9 @@ function glueCameraTo(playerModel:THREE.Object3D<Object3DEventMap>, camera:THREE
         )
 }
 function run(speed:number) {
-        playerRun.position.z += speed;
+    if(playerDeath) return;
+
+        playerRun.position.z -= speed * fixedDelta;
         glueCameraTo(playerRun, camera);
 }
 function NormalizeBGTexture(aspect) {
@@ -582,10 +593,10 @@ function moveToSide() {
     startX = currentX;
     const normalized = deltaX / window.innerWidth;
 
-    const targetX = playerRun.position.x + normalized * sideMoveSpeed * clock.getDelta();
+    const targetX = playerRun.position.x + normalized * sideMoveSpeed * fixedDelta;
     playerRun.position.x = THREE.MathUtils.lerp(playerRun.position.x, targetX, lerpFactor);
 
-    const targetRotationY = targetRotate - normalized * 30;
+    const targetRotationY = targetRotate - normalized * 50;
     playerRun.rotation.y = THREE.MathUtils.lerp(playerRun.rotation.y, targetRotationY, lerpFactor);
 
     if(playerRun.position.x > 1) playerRun.position.x = 1;
@@ -623,7 +634,7 @@ function onClick() {
                     firstTouch = true;
                     scoreText.scale.set(0.1,0.1,0.0001);
                     updateTextMesh(scoreText, "Score");
-                    playerSpeed = -0.03;
+                    playerSpeed = 1;
                     removeObject(playerIdle);
                     scene.add(playerRun);
                     playerAnimationMixer = new THREE.AnimationMixer(playerRun);
