@@ -10,15 +10,9 @@ import {Explosive} from "./Explosive";
 import {createTextMesh, updateTextMesh} from "./Font3D";
 
 let {clock, deltaTime, canvas, bgTexture, canvasAspect, player} = PreparationScene();
-let touch = {
-    x: 0
-}
 let targetFPS = 60;
 let fixedDelta = 1.0 / targetFPS;
 let accumulatedTime = 0.0;
-let prevTime
-let prevZ = 0;
-let deltaZ;
 let deltaX = 0;
 let startX = 0;
 let currentX = 0;
@@ -596,7 +590,7 @@ function moveToSide() {
     const targetX = playerRun.position.x + normalized * sideMoveSpeed * fixedDelta;
     playerRun.position.x = THREE.MathUtils.lerp(playerRun.position.x, targetX, lerpFactor);
 
-    const targetRotationY = targetRotate - normalized * 50;
+    const targetRotationY = targetRotate - normalized * 1000 * fixedDelta;
     playerRun.rotation.y = THREE.MathUtils.lerp(playerRun.rotation.y, targetRotationY, lerpFactor);
 
     if(playerRun.position.x > 1) playerRun.position.x = 1;
