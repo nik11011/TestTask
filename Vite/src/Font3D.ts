@@ -11,7 +11,7 @@ export type TextMesh = THREE.Mesh<TextGeometry, THREE.MeshPhongMaterial>;
 let cachedFont: Font | null = null;
 
 async function loadFont(
-    url: string = "./public/helvetiker_regular.typeface.json"
+    url: string = "optimer_bold.typeface.json"
 ): Promise<Font> {
     if (cachedFont) return cachedFont;
     const loader = new FontLoader();
