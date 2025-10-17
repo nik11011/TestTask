@@ -254,10 +254,6 @@ function update(){
                 playerSpeed = 0;
                 sideMoveSpeed = 0;
                 playerDeath = true;
-                finger.position.z = installBtn.position.z+0.2;
-                finger.position.y = installBtn.position.y-0.1;
-                finger.position.x = installBtn.position.x+0.2;
-                scene.add(finger);
             }
         }
     }
@@ -281,10 +277,6 @@ function update(){
             playerAnimationMixer = new THREE.AnimationMixer(playerDance);
             action = playerAnimationMixer.clipAction(playerDance.animations[0]);
             action.play();
-            finger.position.z = installBtn.position.z+0.2;
-            finger.position.y = installBtn.position.y-0.2;
-            finger.position.x = installBtn.position.x+0.2;
-            scene.add(finger);
         }
     }
     for (let coin of coins) {
@@ -306,14 +298,6 @@ function update(){
             updateTextMesh(wrath.textMesh, "");
         }
     }
-    if (fingerAnimFrame<=100) {
-    finger.position.x-=0.001;
-    fingerAnimFrame+=1;
-    }
-    else{
-        finger.position.x+=0.1;
-        fingerAnimFrame = 0;
-    }
     if(firstTouch)
     {
     run(playerSpeed);
@@ -323,8 +307,20 @@ function update(){
         if (secondAfterFinal>=5) {
             createRestartButton(camera);
             createInstallButton(camera);
+            finger.position.z = installBtn.position.z+0.2;
+            finger.position.y = installBtn.position.y-0.2;
+            finger.position.x = installBtn.position.x+0.2;
+            scene.add(finger);
         }
         else secondAfterFinal+=fixedDelta;
+    }
+    if (fingerAnimFrame<=10) {
+        finger.position.x-=0.001;
+        fingerAnimFrame+=1;
+    }
+    else{
+        finger.position.x+=0.1;
+        fingerAnimFrame = 0;
     }
     playerAnimationMixer.update(0.01);
     if (!moving) {
