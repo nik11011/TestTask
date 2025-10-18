@@ -232,7 +232,7 @@ tutorialText.scale.set(
 )
 tutorialText.position.y = 0.6
 scene.add(tutorialText);
-SizeOnScreen()
+SizeOnScreen();
 update();
 function update(){
     playTracks();
@@ -305,21 +305,28 @@ function update(){
     if(playerDeath==true || win>0)
     {
         if (secondAfterFinal>=5) {
+            camera.position.z = -60;
             createRestartButton(camera);
             createInstallButton(camera);
             finger.position.z = installBtn.position.z+0.2;
             finger.position.y = installBtn.position.y-0.2;
             finger.position.x = installBtn.position.x+0.2;
             scene.add(finger);
+            scoreText.position.z = camera.position.z - cameraIndent.z;
+            textPlane.position.z = scoreText.position.z;
+            scoreText.position.x = camera.position.x;
+            textPlane.position.x = scoreText.position.x;
+            scoreText.lookAt(camera.position);
+            textPlane.lookAt(camera.position);
         }
         else secondAfterFinal+=fixedDelta;
     }
     if (fingerAnimFrame<=10) {
-        finger.position.x-=0.001;
+        finger.position.x-=0.001*fixedDelta;
         fingerAnimFrame+=1;
     }
     else{
-        finger.position.x+=0.1;
+        finger.position.x = installBtn.position.x+0.2;
         fingerAnimFrame = 0;
     }
     playerAnimationMixer.update(0.01);
@@ -332,7 +339,7 @@ function update(){
 
 function MoveToLeftPosition() {
     if (fingerTutorial.position.x >= -0.4) {
-        fingerTutorial.position.x -= 1*fixedDelta;
+        fingerTutorial.position.x -= fixedDelta;
     } else {
         right = false;
         left = true;
@@ -341,7 +348,7 @@ function MoveToLeftPosition() {
 
 function MoveToRightPosition() {
     if (fingerTutorial.position.x <= 0.4) {
-        fingerTutorial.position.x += 1*fixedDelta;
+        fingerTutorial.position.x += fixedDelta;
     } else {
         right = true;
         left = false;
@@ -528,13 +535,13 @@ function SizeOnScreen() {
         }
         rstBTN = {
             x: -1,
-            y: 0.2,
-            z: 0
+            y: 0.4,
+            z: -6
         }
         instBTN = {
             x: +1,
-            y: 0.2,
-            z: 0
+            y: 0.4,
+            z: -6
         }
         camera.fov = 30;
         camera.position.y = 2;
@@ -563,12 +570,12 @@ function SizeOnScreen() {
         rstBTN = {
             x: 0,
             y: 1,
-            z: 0
+            z: -3
         }
         instBTN = {
             x: 0,
             y: 0.4,
-            z: 0
+            z: -3
         }
         camera.fov = 55;
         camera.position.y = 2;
@@ -765,8 +772,8 @@ function playTracks() {
 
 function rePosInstallBtn() {
     installText.scale.set(scaleButton, scaleButton, 0.0001);
-    installBtn.position.x = playerRun.position.x+instBTN.x;
-    installBtn.position.z = playerRun.position.z+instBTN.z;
+    installBtn.position.x = camera.position.x+instBTN.x;
+    installBtn.position.z = camera.position.z+instBTN.z;
     installBtn.position.y = instBTN.y;
     installText.position.x = installBtn.position.x;
     installText.position.z = installBtn.position.z;
@@ -781,8 +788,8 @@ function createInstallButton(camera:THREE.Camera){
 
 function rePosRestartBtn() {
     restartText.scale.set(scaleButton, scaleButton, 0.0001)
-    restartBtn.position.x = playerRun.position.x+rstBTN.x;
-    restartBtn.position.z = playerRun.position.z+rstBTN.z;
+    restartBtn.position.x = camera.position.x+rstBTN.x;
+    restartBtn.position.z = camera.position.z+rstBTN.z;
     restartBtn.position.y = rstBTN.y;
     restartText.position.x = restartBtn.position.x;
     restartText.position.z = restartBtn.position.z;
