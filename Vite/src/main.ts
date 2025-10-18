@@ -316,6 +316,7 @@ function update(){
             textPlane.position.z = scoreText.position.z;
             scoreText.position.x = camera.position.x;
             textPlane.position.x = scoreText.position.x;
+            updateTextMesh(scoreText, "You score:{player.score}")
             scoreText.lookAt(camera.position);
             textPlane.lookAt(camera.position);
         }
