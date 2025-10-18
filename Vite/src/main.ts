@@ -305,7 +305,7 @@ function update(){
             createRestartButton(camera);
             createInstallButton(camera);
             finger.position.z = installBtn.position.z+0.2;
-            finger.position.y = installBtn.position.y-0.2;
+            finger.position.y = installBtn.position.y-0.1;
             finger.position.x = installBtn.position.x+0.2;
             scene.add(finger);
             scoreText.position.z = camera.position.z - cameraIndent.z;
@@ -320,7 +320,7 @@ function update(){
         else secondAfterFinal+=fixedDelta;
     }
     if (fingerAnimFrame<=10) {
-        finger.position.x-=(1 * fixedDelta);
+        finger.position.x-=fixedDelta;
         fingerAnimFrame+=1;
     }
     else{
