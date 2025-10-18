@@ -103,8 +103,7 @@ let sideMoveSpeed = 2500;
 let expl = new Explosive();
 let playerDeath = false;
 function playLoseSounds() {
-    if (volume){
-    StepSound.pause();
+    if (playerDeath == false && volume == true){
     BombHopSound.play();
     loopSound.setVolume(0);
     loopSound.pause();
@@ -112,7 +111,6 @@ function playLoseSounds() {
     LoseMusic.play();
     }
     else {
-        StepSound.pause();
         BombHopSound.pause();
         loopSound.setVolume(0);
         loopSound.pause();
@@ -121,17 +119,15 @@ function playLoseSounds() {
 }
 
 function playWinSounds() {
-    if (volume) {
+    if (win != 0 && volume == true) {
         loopSound.setVolume(0);
         loopSound.pause();
         loopSound.remove();
-        StepSound.pause();
         StepSound.remove;
         WinMusic.play();
     }
     else {
         loopSound.pause();
-        StepSound.pause();
         WinMusic.pause();
     }
 }
@@ -316,7 +312,7 @@ function update(){
             textPlane.position.z = scoreText.position.z;
             scoreText.position.x = camera.position.x;
             textPlane.position.x = scoreText.position.x;
-            updateTextMesh(scoreText, "You score:{player.score}")
+            updateTextMesh(scoreText, "You score: " + player.score)
             scoreText.lookAt(camera.position);
             textPlane.lookAt(camera.position);
         }
@@ -330,7 +326,7 @@ function update(){
         finger.position.x = installBtn.position.x+0.2;
         fingerAnimFrame = 0;
     }
-    playerAnimationMixer.update(0.01);
+    playerAnimationMixer.update(fixedDelta);
     if (!moving) {
         playerRun.rotation.y += (targetRotate - playerRun.rotation.y) * 0.5;
     }
@@ -387,15 +383,18 @@ function glueCameraTo(playerModel:THREE.Object3D<Object3DEventMap>, camera:THREE
         UIpositioner(buttonSoundPos, scoreTextPos);
 }
 function run(speed:number) {
-    if(playerDeath) return;
+    if(playerDeath == true || win!=0) {
+        StepSound.pause();
+    }
+    else {
         playerRun.position.z -= speed * fixedDelta;
         glueCameraTo(playerRun, camera);
-        if(volume){
+        if (volume) {
             StepSound.play();
-        }
-        else{
+        } else {
             StepSound.pause();
         }
+    }
 }
 function NormalizeBGTexture(aspect) {
     bgTexture.offset.x = aspect > 1 ? (1 - 1 / aspect) / 2 : 0;
@@ -648,7 +647,6 @@ function loadSounds() {
     audioLoader.load('STGR_Success_Win_forMUSIC_A_2.mp3', function (buffer) {
         WinMusic.setBuffer(buffer);
         WinMusic.setVolume(0.5);
-        WinMusic.setLoop(true);
     });
     audioLoader.load('SFX_UI_Appear_Generic_2.mp3', function (buffer) {
         WrathSound.setBuffer(buffer);
@@ -740,7 +738,6 @@ function onClick(event) {
             else{
                 buttonSound.material.map = textureOffSound;
                 volume = false;
-                volumeOff();
             }
         }
         else if(firstIntersect.object == restartBtn || firstIntersect.object == restartText){
@@ -768,6 +765,10 @@ function volumeOff() {
 function playTracks() {
     if (playerDeath == false && win == 0 && volume == true) {
         loopSound.play();
+    }
+    else
+    {
+        loopSound.pause();
     }
 }
 
