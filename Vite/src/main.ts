@@ -320,7 +320,7 @@ function update(){
         else secondAfterFinal+=fixedDelta;
     }
     if (fingerAnimFrame<=10) {
-        finger.position.x-=0.001*fixedDelta;
+        finger.position.x-=(1 * fixedDelta);
         fingerAnimFrame+=1;
     }
     else{
