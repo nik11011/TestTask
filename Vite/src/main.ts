@@ -313,6 +313,7 @@ function update(){
             scoreText.position.x = camera.position.x;
             textPlane.position.x = scoreText.position.x;
             updateTextMesh(scoreText, "You score: " + player.score)
+            scoreText.scale.set(0.075,0.075,0.0001);
             scoreText.lookAt(camera.position);
             textPlane.lookAt(camera.position);
         }
@@ -757,10 +758,6 @@ function onClick(event) {
                 action.play();
         }
     }
-}
-function volumeOff() {
-    volume = false;
-    loopSound.pause();
 }
 function playTracks() {
     if (playerDeath == false && win == 0 && volume == true) {
