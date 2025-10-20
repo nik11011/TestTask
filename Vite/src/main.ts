@@ -8,28 +8,14 @@ import {interactionalWithScore, WrathInteraction} from "./WrathProperties"
 import {Object3DEventMap} from "three";
 import {Explosive} from "./Explosive";
 import {createTextMesh, updateTextMesh} from "./Font3D";
-let buttonSoundPos = {
-    x:0,
-    y:0,
-    z:0,
-}
-let scoreTextPos = {
-    x: 0,
-    y: 0,
-    z: 0
-}
-let rstBTN = {
-    x: 0,
-    y: 0,
-    z: 0,
-}
-let instBTN= {
-    x: 0,
-    y: 0,
-    z: 0,
-}
-let scaleButton = 0.1;
-let scaleButtonSound = 0;
+import {UILayout} from "./UILayout";
+import {AudioControl} from "./AudioControl";
+
+
+
+
+
+let uiLayout = new UILayout();
 let {clock, deltaTime, canvas, bgTexture, canvasAspect, player} = PreparationScene();
 let fps = 60;
 let fixedDelta = 1.0 / fps;
@@ -41,13 +27,12 @@ let moving = false;
 let targetRotate;
 let volume = false;
 let secondAfterFinal = 0;
-const listener = new THREE.AudioListener();
+
 const audioLoader = new THREE.AudioLoader();
-const {loopSound, CoinHopSound, BombHopSound, StepSound, LoseMusic, WinMusic, WrathSound} = await createAudio();
+const {loopSound, CoinHopSound, BombHopSound, StepSound, LoseMusic, WinMusic, WrathSound} = await AudioControl.createAudio();
 let textureLoader = new THREE.TextureLoader();
 let textureTextPlane = await textureLoader.loadAsync('textPlane.png');
-loadSounds()
-
+loadSounds();
 let arrow: THREE.Mesh;
 let arrowTexture = await textureLoader.loadAsync('arrow.png');
 let planeArrow = new THREE.PlaneGeometry(1.5,0.5);
@@ -85,7 +70,7 @@ scene.add(scoreText);
 createGameScene();
 
 
-camera.add(listener);
+camera.add(AudioControl.listener);
 const importclass = new AssetLoader();
 let coins = new Array<Coin>();
 let bombs = new Array<Bomb>();
@@ -94,6 +79,7 @@ await createIteractionObject();
 addingGateInteraction();
 
 const {playerDance, playerRun, playerIdle} = await loadAnimation();
+player.playerModel = playerRun;
 let playerAnimationMixer = new THREE.AnimationMixer(playerIdle);
 let action = playerAnimationMixer.clipAction(playerIdle.animations[0]);
 action.play();
@@ -381,7 +367,7 @@ function removeObject(model:THREE.Object3D){
 function glueCameraTo(playerModel:THREE.Object3D<Object3DEventMap>, camera:THREE.Camera) {
         camera.position.x = playerModel.position.x;
         camera.position.z = playerModel.position.z + cameraIndent.z;
-        UIpositioner(buttonSoundPos, scoreTextPos);
+        UIpositioner(uiLayout.buttonSoundPos, uiLayout.scoreTextPos);
 }
 function run(speed:number) {
     if(playerDeath == true || win!=0) {
@@ -524,22 +510,22 @@ function UIpositioner(buttonSoundPos: { x: number; y: number; z: number }, score
 
 function SizeOnScreen() {
     if(window.innerWidth>window.innerHeight){
-        scoreTextPos = {
+        uiLayout.scoreTextPos = {
             x: -2,
             y: 1.5,
             z: playerRun.position.z
         }
-        buttonSoundPos = {
+        uiLayout.buttonSoundPos = {
             x:0.4,
             y:-0.1,
             z:-1,
         }
-        rstBTN = {
+        uiLayout.restartButtonPosition = {
             x: -1,
             y: 0.4,
             z: -6
         }
-        instBTN = {
+        uiLayout.installButtonPosition = {
             x: +1,
             y: 0.4,
             z: -6
@@ -552,28 +538,28 @@ function SizeOnScreen() {
             playerRun.position.x,
             playerRun.position.y,
             playerRun.position.z-2);
-        scaleButtonSound = 0.4;
+        uiLayout.scaleButtonSound = 0.4;
         rePosInstallBtn()
         rePosRestartBtn()
 
     }
     else if(window.innerHeight>=window.innerWidth) {
-        scoreTextPos = {
+        uiLayout.scoreTextPos = {
             x: 0,
             y: 1.7,
             z: playerRun.position.z
         }
-        buttonSoundPos = {
+        uiLayout.buttonSoundPos = {
             x: -0.35,
             y: -1.4,
             z: -1.1,
         }
-        rstBTN = {
+        uiLayout.restartButtonPosition = {
             x: 0,
             y: 1,
             z: -3
         }
-        instBTN = {
+        uiLayout.installButtonPosition = {
             x: 0,
             y: 0.4,
             z: -3
@@ -586,12 +572,12 @@ function SizeOnScreen() {
             playerRun.position.x,
             playerRun.position.y,
             playerRun.position.z-1);
-        scaleButtonSound = 0.8;
+        uiLayout.scaleButtonSound = 0.8;
         rePosInstallBtn()
         rePosRestartBtn()
     }
-    buttonSound.scale.set(scaleButtonSound, scaleButtonSound, 0.1);
-    UIpositioner(buttonSoundPos, scoreTextPos);
+    buttonSound.scale.set(uiLayout.scaleButtonSound, uiLayout.scaleButtonSound, 0.1);
+    UIpositioner(uiLayout.buttonSoundPos, uiLayout.scoreTextPos);
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight)
@@ -655,16 +641,7 @@ function loadSounds() {
     });
 }
 
-async function createAudio() {
-    const loopSound = new THREE.Audio(listener);
-    const CoinHopSound = new THREE.Audio(listener);
-    const BombHopSound = new THREE.Audio(listener);
-    const StepSound = new THREE.Audio(listener);
-    const LoseMusic = new THREE.Audio(listener);
-    const WinMusic = new THREE.Audio(listener);
-    const WrathSound = new THREE.Audio(listener)
-    return {loopSound, CoinHopSound, BombHopSound, StepSound, LoseMusic, WinMusic, WrathSound};
-}
+
 
 
 
@@ -770,10 +747,10 @@ function playTracks() {
 }
 
 function rePosInstallBtn() {
-    installText.scale.set(scaleButton, scaleButton, 0.0001);
-    installBtn.position.x = camera.position.x+instBTN.x;
-    installBtn.position.z = camera.position.z+instBTN.z;
-    installBtn.position.y = instBTN.y;
+    installText.scale.set(uiLayout.scaleButton, uiLayout.scaleButton, 0.0001);
+    installBtn.position.x = camera.position.x+uiLayout.installButtonPosition.x;
+    installBtn.position.z = camera.position.z+uiLayout.installButtonPosition.z;
+    installBtn.position.y = uiLayout.installButtonPosition.y;
     installText.position.x = installBtn.position.x;
     installText.position.z = installBtn.position.z;
     installText.position.y = installBtn.position.y;
@@ -786,10 +763,10 @@ function createInstallButton(camera:THREE.Camera){
 }
 
 function rePosRestartBtn() {
-    restartText.scale.set(scaleButton, scaleButton, 0.0001)
-    restartBtn.position.x = camera.position.x+rstBTN.x;
-    restartBtn.position.z = camera.position.z+rstBTN.z;
-    restartBtn.position.y = rstBTN.y;
+    restartText.scale.set(uiLayout.scaleButton, uiLayout.scaleButton, 0.0001)
+    restartBtn.position.x = camera.position.x+uiLayout.restartButtonPosition.x;
+    restartBtn.position.z = camera.position.z+uiLayout.restartButtonPosition.z;
+    restartBtn.position.y = uiLayout.restartButtonPosition.y;
     restartText.position.x = restartBtn.position.x;
     restartText.position.z = restartBtn.position.z;
     restartText.position.y = restartBtn.position.y;
