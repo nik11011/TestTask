@@ -10,11 +10,11 @@ import {Explosive} from "./Explosive";
 import {createTextMesh, updateTextMesh} from "./Font3D";
 import {UILayout} from "./UILayout";
 import {AudioControl} from "./AudioControl";
+import {SceneControl} from "./SceneControl";
+import {AnimationManager} from "./AnimationManager";
 
 
-
-
-
+let targetRotate = Math.PI/1;
 let uiLayout = new UILayout();
 let {clock, deltaTime, canvas, bgTexture, canvasAspect, player} = PreparationScene();
 let fps = 60;
@@ -24,15 +24,15 @@ let deltaX = 0;
 let startX = 0;
 let currentX = 0;
 let moving = false;
-let targetRotate;
-let volume = false;
 let secondAfterFinal = 0;
 
-const audioLoader = new THREE.AudioLoader();
-const {loopSound, CoinHopSound, BombHopSound, StepSound, LoseMusic, WinMusic, WrathSound} = await AudioControl.createAudio();
+let sceneController = new SceneControl();
+
+let audioControl = new AudioControl();
+
+audioControl.loadSounds();
 let textureLoader = new THREE.TextureLoader();
 let textureTextPlane = await textureLoader.loadAsync('textPlane.png');
-loadSounds();
 let arrow: THREE.Mesh;
 let arrowTexture = await textureLoader.loadAsync('arrow.png');
 let planeArrow = new THREE.PlaneGeometry(1.5,0.5);
@@ -54,7 +54,7 @@ const renderer = new THREE.WebGLRenderer({
         alpha: true
     });
 renderer.setSize(window.innerWidth, window.innerHeight);
-const {camera, scene} = CreateCameraAndScene();
+sceneController.scene.background = bgTexture;
 const platformForRun = new THREE.Mesh(
     new THREE.BoxGeometry(2, 1, 40),
     new THREE.MeshBasicMaterial(
@@ -66,11 +66,11 @@ const light = new THREE.AmbientLight('#FFFFFF', 5);
 let scoreText = await createTextMesh("Take coin, avoid bomb", 0.5, '#cc6d00');
 scoreText.scale.set(0.1,0.1,0.0001);
 scoreText.material.depthFunc = 7;
-scene.add(scoreText);
+sceneController.scene.add(scoreText);
 createGameScene();
 
 
-camera.add(AudioControl.listener);
+sceneController.camera.add(audioControl.listener);
 const importclass = new AssetLoader();
 let coins = new Array<Coin>();
 let bombs = new Array<Bomb>();
@@ -78,63 +78,18 @@ let wraths = new Array<Wrath>();
 await createIteractionObject();
 addingGateInteraction();
 
-const {playerDance, playerRun, playerIdle} = await loadAnimation();
-player.playerModel = playerRun;
-let playerAnimationMixer = new THREE.AnimationMixer(playerIdle);
-let action = playerAnimationMixer.clipAction(playerIdle.animations[0]);
-action.play();
-scene.add(playerIdle);
+const {playerDance, playerRun, playerIdle} = await importclass.loadAnimation();
+player.replaceModel(playerIdle)
+sceneController.scene.add(player.playerModel);
+let animationManager = new AnimationManager();
+animationManager.changeAnimation(player.playerModel);
+animationManager.playAnimation();
 let playerSpeed = 0;
 let sideMoveSpeed = 2500;
 let expl = new Explosive();
 let playerDeath = false;
-function playLoseSounds() {
-    if (playerDeath == false && volume == true){
-    BombHopSound.play();
-    loopSound.setVolume(0);
-    loopSound.pause();
-    loopSound.remove();
-    LoseMusic.play();
-    }
-    else {
-        BombHopSound.pause();
-        loopSound.setVolume(0);
-        loopSound.pause();
-        LoseMusic.pause();
-    }
-}
 
-function playWinSounds() {
-    if (win != 0 && volume == true) {
-        loopSound.setVolume(0);
-        loopSound.pause();
-        loopSound.remove();
-        StepSound.remove;
-        WinMusic.play();
-    }
-    else {
-        loopSound.pause();
-        WinMusic.pause();
-    }
-}
-
-function playCoinTake() {
-    if (volume) {
-        CoinHopSound.play();
-    }
-    else {
-        CoinHopSound.pause();
-    }
-}
 let win:number = 0;
-
-function WrathSoundPlay() {
-    if (volume) {
-        WrathSound.play();
-    } else {
-        WrathSound.pause();
-    }
-}
 
 
 
@@ -153,14 +108,14 @@ let textPlane = new THREE.Mesh(
     textPlaneGeometry,
     textPlaneMaterial
 );
-scene.add(textPlane);
+sceneController.scene.add(textPlane);
 
 let buttonSoundGeometry = new THREE.PlaneGeometry(0.2,0.2);
 let buttonSound = new THREE.Mesh(
     buttonSoundGeometry,
     buttonOfSound
 );
-scene.add(buttonSound)
+sceneController.scene.add(buttonSound)
 let installBtn;
 let restartBtn;
 
@@ -200,20 +155,20 @@ let fingerTutorial = new THREE.Mesh(
     fingerPlaneGeometry,
     fingerMaterial
 )
-scene.add(fingerTutorial);
+sceneController.scene.add(fingerTutorial);
 let left = false;
 let right = true;
 arrow.position.z = 0.2
 fingerTutorial.position.z = 0.3
 arrow.position.y = 0.5
 fingerTutorial.position.y = 0.3
-scene.add(arrow);
+sceneController.scene.add(arrow);
 let tutorialText = await createTextMesh("Touch and swipe !", 1, "#000000");
 tutorialText.scale.set(
     0.1, 0.1, 0.00001
 )
 tutorialText.position.y = 0.6
-scene.add(tutorialText);
+sceneController.scene.add(tutorialText);
 SizeOnScreen();
 update();
 function update(){
@@ -225,11 +180,11 @@ function update(){
     moveToSide();
     if (playerDeath == false){
         for(let bomb of bombs){
-            if (bomb.OnTrigger(playerRun)) {
-                playLoseSounds();
-                removeObject(playerRun);
+            if (bomb.OnTrigger(player.playerModel)) {
+                audioControl.playLoseSounds(playerDeath);
+                removeObject(player.playerModel);
                 removeObject(bomb.model);
-                expl.createExplosive(scene,
+                expl.createExplosive(sceneController.scene,
                     bomb.model.position.x,
                     bomb.model.position.y+0.1,
                     bomb.model.position.z)
@@ -240,31 +195,28 @@ function update(){
         }
     }
     else {
-        expl.animate(scene);
+        expl.animate(sceneController.scene);
     }
     const imageAspect = bgTexture.image ? bgTexture.image.width / bgTexture.image.height : 1;
     const aspect = imageAspect / canvasAspect;
     NormalizeBGTexture(aspect)
     window.requestAnimationFrame(update);
-    if (playerRun.position.z <= -24) {
+    if (player.playerModel.position.z <= -24) {
         if (win == 0) {
             win+=1;
-            playWinSounds();
-            playerDance.position.z = playerRun.position.z;
-            playerDance.position.x = playerRun.position.x;
-            removeObject(playerRun);
-            scene.add(playerDance);
+            audioControl.playWinSounds(win);
+            removeObject(player.playerModel);
+            player.replaceModel(playerDance);
+            sceneController.scene.add(playerDance);
             playerSpeed = 0;
             sideMoveSpeed = 0;
-            playerAnimationMixer = new THREE.AnimationMixer(playerDance);
-            action = playerAnimationMixer.clipAction(playerDance.animations[0]);
-            action.play();
+            animationManager.changeAnimation(player.playerModel);
         }
     }
     for (let coin of coins) {
         coin.AnimationRotate(fixedDelta * 10);
-        if (coin.OnTrigger(playerRun)){
-            playCoinTake();
+        if (coin.OnTrigger(player.playerModel)){
+            audioControl.playCoinTake();
             player.score += 1;
             coin.interactionalZone = 0;
             updateTextMesh(scoreText, `${player.score}`)
@@ -272,10 +224,10 @@ function update(){
             }
         }
     for (let wrath of wraths) {
-        if (wrath.OnEnterInWrath(playerRun)){
+        if (wrath.OnEnterInWrath(player.playerModel)){
             player.score = wrath.wrathInteraction.doInteraction(player.score);
             updateTextMesh(scoreText, `${player.score}`)
-            WrathSoundPlay();
+            audioControl.WrathSoundPlay();
             removeObject(wrath.model);
             updateTextMesh(wrath.textMesh, "");
         }
@@ -287,21 +239,21 @@ function update(){
     if(playerDeath==true || win>0)
     {
         if (secondAfterFinal>=5) {
-            camera.position.z = -60;
-            createRestartButton(camera);
-            createInstallButton(camera);
+            sceneController.camera.position.z = -60;
+            createRestartButton(sceneController.camera);
+            createInstallButton(sceneController.camera);
             finger.position.z = installBtn.position.z+0.2;
             finger.position.y = installBtn.position.y-0.1;
             finger.position.x = installBtn.position.x+0.2;
-            scene.add(finger);
-            scoreText.position.z = camera.position.z - cameraIndent.z;
+            sceneController.scene.add(finger);
+            scoreText.position.z = sceneController.camera.position.z - cameraIndent.z;
             textPlane.position.z = scoreText.position.z;
-            scoreText.position.x = camera.position.x;
+            scoreText.position.x = sceneController.camera.position.x;
             textPlane.position.x = scoreText.position.x;
             updateTextMesh(scoreText, "You score: " + player.score)
             scoreText.scale.set(0.075,0.075,0.0001);
-            scoreText.lookAt(camera.position);
-            textPlane.lookAt(camera.position);
+            scoreText.lookAt(sceneController.camera.position);
+            textPlane.lookAt(sceneController.camera.position);
         }
         else secondAfterFinal+=fixedDelta;
     }
@@ -313,12 +265,12 @@ function update(){
         finger.position.x = installBtn.position.x+0.2;
         fingerAnimFrame = 0;
     }
-    playerAnimationMixer.update(fixedDelta);
+    animationManager.mixer.update(fixedDelta);
     if (!moving) {
-        playerRun.rotation.y += (targetRotate - playerRun.rotation.y) * 0.5;
+        player.playerModel.rotation.y += (targetRotate - player.playerModel.rotation.y) * 0.5;
     }
     console.log(deltaTime);
-    renderer.render(scene, camera);
+    renderer.render(sceneController.scene, sceneController.camera);
 }
 
 function MoveToLeftPosition() {
@@ -353,9 +305,9 @@ function Tutorial(){
         AnimationTutorial();
     }
     else{
-        scene.remove(arrow);
-        scene.remove(fingerTutorial);
-        scene.remove(tutorialText);
+        sceneController.scene.remove(arrow);
+        sceneController.scene.remove(fingerTutorial);
+        sceneController.scene.remove(tutorialText);
     }
 }
 
@@ -371,15 +323,15 @@ function glueCameraTo(playerModel:THREE.Object3D<Object3DEventMap>, camera:THREE
 }
 function run(speed:number) {
     if(playerDeath == true || win!=0) {
-        StepSound.pause();
+        audioControl.stepSound.pause();
     }
     else {
-        playerRun.position.z -= speed * fixedDelta;
-        glueCameraTo(playerRun, camera);
-        if (volume) {
-            StepSound.play();
+        player.playerModel.position.z -= speed * fixedDelta;
+        glueCameraTo(player.playerModel, sceneController.camera);
+        if (audioControl.volume) {
+            audioControl.stepSound.play();
         } else {
-            StepSound.pause();
+            audioControl.stepSound.pause();
         }
     }
 }
@@ -395,52 +347,7 @@ function NormalizeBGTexture(aspect) {
 
 
 
-async function loadWrathArray() {
-    wraths.push(
-        new Wrath(scene, -0.5, -4,
-            await importclass.importModel("public/Wrath.fbx"),
-            await createTextMesh("x4", 0.5, "#0004ff")),
-        new Wrath(scene, 0.5, -4,
-            await importclass.importModel("public/Wrath.fbx"),
-            await createTextMesh("-1", 0.5, "#fd0000")),
-        new Wrath(scene, -0.5, -12,
-            await importclass.importModel("public/Wrath.fbx"),
-            await createTextMesh("+2", 0.5, "#0004ff")),
-        new Wrath(scene, 0.5, -12,
-            await importclass.importModel("public/Wrath.fbx"),
-            await createTextMesh("/2", 0.5, "#ff0000")),
-        new Wrath(scene, -0.5, -20,
-            await importclass.importModel("public/Wrath.fbx"),
-            await createTextMesh("/5", 0.5, "#ff0000")),
-        new Wrath(scene, 0.5, -20,
-            await importclass.importModel("public/Wrath.fbx"),
-            await createTextMesh("*4", 0.5, "#0004ff"))
-    );
-}
 
-
-async function loadCoinArray() {
-    coins.push(
-        new Coin(scene, -0.5, -1, await importclass.importModel("public/Coin_Reskin.fbx")),
-        new Coin(scene, -0.5, -3, await importclass.importModel("public/Coin_Reskin.fbx")),
-        new Coin(scene, +0.5, -5, await importclass.importModel("public/Coin_Reskin.fbx")),
-        new Coin(scene, -0.5, -7, await importclass.importModel("public/Coin_Reskin.fbx")),
-        new Coin(scene, +0.5, -9, await importclass.importModel("public/Coin_Reskin.fbx")),
-        new Coin(scene, +0.5, -11, await importclass.importModel("public/Coin_Reskin.fbx")),
-        new Coin(scene, +0.5, -13, await importclass.importModel("public/Coin_Reskin.fbx")),
-        new Coin(scene, +0.5, -16, await importclass.importModel("public/Coin_Reskin.fbx")),
-        new Coin(scene, -0.5, -19, await importclass.importModel("public/Coin_Reskin.fbx"))
-    );
-}
-
-async function loadBombArray() {
-    bombs.push(
-        new Bomb(scene, 0.5, -5, await importclass.importModel("public/bomb.fbx")),
-        new Bomb(scene, 0.5, -9, await importclass.importModel("public/bomb.fbx")),
-        new Bomb(scene, -0.5, -10, await importclass.importModel("public/bomb.fbx")),
-        new Bomb(scene, -0.5, -15, await importclass.importModel("public/bomb.fbx"))
-    );
-}
 function createPlatform() {
     platformForRun.position.y = -0.65;
     platformForRun.position.z = -18;
@@ -455,9 +362,9 @@ function addingGateInteraction() {
 
 }
 function createGameScene() {
-    scene.add(platformForRun);
-    scene.add(light);
-    scene.add(camera);
+    sceneController.scene.add(platformForRun);
+    sceneController.scene.add(light);
+    sceneController.scene.add(sceneController.camera);
 }
 function PreparationScene() {
     const clock = new THREE.Clock();
@@ -471,22 +378,15 @@ function PreparationScene() {
 }
 
 
-function CreateCameraAndScene() {
-    const axesHelper = new THREE.AxesHelper(3);
-    const camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight);
-    const scene = new THREE.Scene();
-    scene.background = bgTexture;
-    return {axesHelper, camera, scene};
-}
 
 function UIpositioner(buttonSoundPos: { x: number; y: number; z: number }, scoreTextPos: {x: number; y: number; z: number}) {
     scoreText.position.set(
-        camera.position.x+scoreTextPos.x,
+        sceneController.camera.position.x+scoreTextPos.x,
         scoreTextPos.y,
-        playerRun.position.z + scoreTextPos.z
+        player.playerModel.position.z + scoreTextPos.z
     )
     scoreText.lookAt(
-        camera.position
+        sceneController.camera.position
     )
     textPlane.position.set(
         scoreText.position.x,
@@ -494,17 +394,17 @@ function UIpositioner(buttonSoundPos: { x: number; y: number; z: number }, score
         scoreText.position.z
     )
     textPlane.lookAt(
-        camera.position
+        sceneController.camera.position
     )
     buttonSound.position.set(
-        camera.position.x + buttonSoundPos.x,
-        camera.position.y + buttonSoundPos.y,
-        camera.position.z + buttonSoundPos.z
+        sceneController.camera.position.x + buttonSoundPos.x,
+        sceneController.camera.position.y + buttonSoundPos.y,
+        sceneController.camera.position.z + buttonSoundPos.z
     )
     buttonSound.lookAt(
-        camera.position.x + buttonSoundPos.x,
-        camera.position.y,
-        camera.position.z,
+        sceneController.camera.position.x + buttonSoundPos.x,
+        sceneController.camera.position.y,
+        sceneController.camera.position.z,
     )
 }
 
@@ -513,7 +413,7 @@ function SizeOnScreen() {
         uiLayout.scoreTextPos = {
             x: -2,
             y: 1.5,
-            z: playerRun.position.z
+            z: player.playerModel.position.z
         }
         uiLayout.buttonSoundPos = {
             x:0.4,
@@ -530,14 +430,14 @@ function SizeOnScreen() {
             y: 0.4,
             z: -6
         }
-        camera.fov = 30;
-        camera.position.y = 2;
+        sceneController.camera.fov = 30;
+        sceneController.camera.position.y = 2;
         cameraIndent.z = 5;
-        camera.position.z = playerRun.position.z + cameraIndent.z;
-        camera.lookAt(
-            playerRun.position.x,
-            playerRun.position.y,
-            playerRun.position.z-2);
+        sceneController.camera.position.z = player.playerModel.position.z + cameraIndent.z;
+        sceneController.camera.lookAt(
+            player.playerModel.position.x,
+            player.playerModel.position.y,
+            player.playerModel.position.z-2);
         uiLayout.scaleButtonSound = 0.4;
         rePosInstallBtn()
         rePosRestartBtn()
@@ -547,7 +447,7 @@ function SizeOnScreen() {
         uiLayout.scoreTextPos = {
             x: 0,
             y: 1.7,
-            z: playerRun.position.z
+            z: player.playerModel.position.z
         }
         uiLayout.buttonSoundPos = {
             x: -0.35,
@@ -564,86 +464,34 @@ function SizeOnScreen() {
             y: 0.4,
             z: -3
         }
-        camera.fov = 55;
-        camera.position.y = 2;
+        sceneController.camera.fov = 55;
+        sceneController.camera.position.y = 2;
         cameraIndent.z = 3;
-        camera.position.z = playerRun.position.z + cameraIndent.z;
-        camera.lookAt(
-            playerRun.position.x,
-            playerRun.position.y,
-            playerRun.position.z-1);
+        sceneController.camera.position.z = player.playerModel.position.z + cameraIndent.z;
+        sceneController.camera.lookAt(
+            player.playerModel.position.x,
+            player.playerModel.position.y,
+            player.playerModel.position.z-1);
         uiLayout.scaleButtonSound = 0.8;
         rePosInstallBtn()
         rePosRestartBtn()
     }
     buttonSound.scale.set(uiLayout.scaleButtonSound, uiLayout.scaleButtonSound, 0.1);
     UIpositioner(uiLayout.buttonSoundPos, uiLayout.scoreTextPos);
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
+    sceneController.camera.aspect = window.innerWidth / window.innerHeight;
+    sceneController.camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight)
 }
 
 window.addEventListener('resize', SizeOnScreen);
 
-async function loadAnimation() {
-    const playerDance = await importclass.importModel("public/Dance.fbx");
-    playerDance.rotation.y = Math.PI * 0.5;
-    playerDance.position.y = -0.15;
-    playerDance.scale.set(0.004, 0.004, 0.004);
-    const playerRun = await importclass.importModel("public/Running.fbx");
-    playerRun.rotation.y = Math.PI/1;
-    targetRotate = Math.PI/1;
-    playerRun.position.y = -0.15;
-    playerRun.scale.set(0.004, 0.004, 0.004);
-    const playerIdle = await importclass.importModel("public/Idle.fbx");
-    playerIdle.rotation.y = Math.PI/1;
-    playerIdle.position.y = -0.15;
-    playerIdle.scale.set(0.004, 0.004, 0.004);
-    return {playerDance, playerRun, playerIdle};
-}
+
 
 async function createIteractionObject() {
-    await loadCoinArray();
-    await loadBombArray();
-    await loadWrathArray();
+    await sceneController.loadCoinArray(coins);
+    await sceneController.loadBombArray(bombs);
+    await sceneController.loadWrathArray(wraths);
 }
-
-function loadSounds() {
-    audioLoader.load('loopTrack.mp3', function(buffer) {
-        loopSound.setBuffer(buffer);
-        loopSound.setLoop(true);
-        loopSound.setVolume(0.5);
-    });
-    audioLoader.load('coin.mp3', function (buffer) {
-        CoinHopSound.setBuffer(buffer);
-        CoinHopSound.setVolume(0.5);
-    });
-    audioLoader.load('explosion_small_no_tail_03.mp3', function (buffer) {
-        BombHopSound.setBuffer(buffer);
-        BombHopSound.setVolume(0.5);
-    });
-    audioLoader.load('step_0.mp3', function (buffer) {
-        StepSound.setBuffer(buffer);
-        StepSound.setVolume(0.5);
-        StepSound.setLoop(true);
-    });
-    audioLoader.load('STGR_Fail_Lose_forMUSIC_A_1.mp3', function (buffer) {
-        LoseMusic.setBuffer(buffer);
-        LoseMusic.setVolume(0.5);
-    });
-    audioLoader.load('STGR_Success_Win_forMUSIC_A_2.mp3', function (buffer) {
-        WinMusic.setBuffer(buffer);
-        WinMusic.setVolume(0.5);
-    });
-    audioLoader.load('SFX_UI_Appear_Generic_2.mp3', function (buffer) {
-        WrathSound.setBuffer(buffer);
-        WrathSound.setVolume(0.5);
-    });
-}
-
-
-
-
 
 window.addEventListener('touchstart', onTouchStart);
 window.addEventListener('touchend', onTouchEnd);
@@ -686,14 +534,14 @@ function moveToSide() {
     startX = currentX;
     const normalized = deltaX / window.innerWidth;
 
-    const targetX = playerRun.position.x + normalized * sideMoveSpeed * fixedDelta;
-    playerRun.position.x = THREE.MathUtils.lerp(playerRun.position.x, targetX, lerpFactor);
+    const targetX = player.playerModel.position.x + normalized * sideMoveSpeed * fixedDelta;
+    player.playerModel.position.x = THREE.MathUtils.lerp(player.playerModel.position.x, targetX, lerpFactor);
 
     const targetRotationY = targetRotate - normalized * 2000 * fixedDelta;
-    playerRun.rotation.y = THREE.MathUtils.lerp(playerRun.rotation.y, targetRotationY, lerpFactor);
+    player.playerModel.rotation.y = THREE.MathUtils.lerp(player.playerModel.rotation.y, targetRotationY, lerpFactor);
 
-    if(playerRun.position.x > 1) playerRun.position.x = 1;
-    if(playerRun.position.x < -1) playerRun.position.x = -1;
+    if(player.playerModel.position.x > 1) player.playerModel.position.x = 1;
+    if(player.playerModel.position.x < -1) player.playerModel.position.x = -1;
 }
 
 window.addEventListener('touchmove', onTouchMove);
@@ -703,19 +551,19 @@ window.addEventListener('touchstart', onClick);
 function onClick(event) {
     rayTouch.x = (event.clientX / window.innerWidth) * 2 - 1;
     rayTouch.y = -(event.clientY / window.innerHeight) * 2 + 1;
-    raycaster.setFromCamera(rayTouch, camera);
-    const intersects = raycaster.intersectObjects(scene.children, false);
+    raycaster.setFromCamera(rayTouch, sceneController.camera);
+    const intersects = raycaster.intersectObjects(sceneController.scene.children, false);
     if (intersects.length > 0)
     {
         const firstIntersect = intersects[0];
         if (firstIntersect.object == buttonSound){
             if (buttonSound.material.map == textureOffSound) {
                 buttonSound.material.map = textureOnSound;
-                volume = true;
+                audioControl.volume = true;
             }
             else{
                 buttonSound.material.map = textureOffSound;
-                volume = false;
+                audioControl.volume = false;
             }
         }
         else if(firstIntersect.object == restartBtn || firstIntersect.object == restartText){
@@ -728,28 +576,27 @@ function onClick(event) {
                 scoreText.scale.set(0.1,0.1,0.0001);
                 updateTextMesh(scoreText, "Score");
                 playerSpeed = 2;
-                removeObject(playerIdle);
-                scene.add(playerRun);
-                playerAnimationMixer = new THREE.AnimationMixer(playerRun);
-                action = playerAnimationMixer.clipAction(playerRun.animations[0]);
-                action.play();
+                player.replaceModel(playerRun);
+                sceneController.scene.add(player.playerModel);
+                animationManager.changeAnimation(player.playerModel);
+                animationManager.playAnimation();
         }
     }
 }
 function playTracks() {
-    if (playerDeath == false && win == 0 && volume == true) {
-        loopSound.play();
+    if (playerDeath == false && win == 0 && audioControl.volume == true) {
+        audioControl.loopSound.play();
     }
     else
     {
-        loopSound.pause();
+        audioControl.loopSound.pause();
     }
 }
 
 function rePosInstallBtn() {
     installText.scale.set(uiLayout.scaleButton, uiLayout.scaleButton, 0.0001);
-    installBtn.position.x = camera.position.x+uiLayout.installButtonPosition.x;
-    installBtn.position.z = camera.position.z+uiLayout.installButtonPosition.z;
+    installBtn.position.x = sceneController.camera.position.x+uiLayout.installButtonPosition.x;
+    installBtn.position.z = sceneController.camera.position.z+uiLayout.installButtonPosition.z;
     installBtn.position.y = uiLayout.installButtonPosition.y;
     installText.position.x = installBtn.position.x;
     installText.position.z = installBtn.position.z;
@@ -758,14 +605,14 @@ function rePosInstallBtn() {
 
 function createInstallButton(camera:THREE.Camera){
     rePosInstallBtn();
-    scene.add(installBtn);
-    scene.add(installText);
+    sceneController.scene.add(installBtn);
+    sceneController.scene.add(installText);
 }
 
 function rePosRestartBtn() {
     restartText.scale.set(uiLayout.scaleButton, uiLayout.scaleButton, 0.0001)
-    restartBtn.position.x = camera.position.x+uiLayout.restartButtonPosition.x;
-    restartBtn.position.z = camera.position.z+uiLayout.restartButtonPosition.z;
+    restartBtn.position.x = sceneController.camera.position.x+uiLayout.restartButtonPosition.x;
+    restartBtn.position.z = sceneController.camera.position.z+uiLayout.restartButtonPosition.z;
     restartBtn.position.y = uiLayout.restartButtonPosition.y;
     restartText.position.x = restartBtn.position.x;
     restartText.position.z = restartBtn.position.z;
@@ -774,6 +621,6 @@ function rePosRestartBtn() {
 
 function createRestartButton(camera:THREE.Camera) {
     rePosRestartBtn();
-    scene.add(restartBtn);
-    scene.add(restartText);
+    sceneController.scene.add(restartBtn);
+    sceneController.scene.add(restartText);
 }
