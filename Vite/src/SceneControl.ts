@@ -4,6 +4,7 @@ import {createTextMesh} from "./Font3D";
 import {AssetLoader} from "./AssetLoader";
 import {Coin} from "./Coin";
 import {Bomb} from "./Bomb";
+import {DirectionalLight} from "three";
 
 export class SceneControl{
     camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight);
@@ -14,6 +15,19 @@ export class SceneControl{
 
     }
 
+    createSun() {
+        const light = new THREE.DirectionalLight('#ffffff', 7);
+        light.castShadow = true;
+        light.shadow.mapSize.set(16384, 16384);
+        light.shadow.camera.near = 0.5;
+        light.shadow.camera.far = 100;
+        light.shadow.camera.left = -50;
+        light.shadow.camera.right = 50;
+        light.shadow.camera.top = 50;
+        light.shadow.camera.bottom = -50;
+        light.position.set(5, 10, 5);
+        this.scene.add(light)
+    }
     async loadWrathArray(wraths:Array<Wrath>) {
         wraths.push(
             new Wrath(this.scene, -0.5, -4,
