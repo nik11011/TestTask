@@ -6,7 +6,7 @@ export class Player {
     constructor(){
     }
 
-    replaceModel(model:THREE.Group<THREE.Object3DEventMap>){
+    replaceModel(model){
         if(this.playerModel!=null) {
             this.playerModel.clear();
             model.position.z = this.playerModel.position.z;

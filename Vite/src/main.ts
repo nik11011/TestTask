@@ -43,6 +43,7 @@ const renderer = new THREE.WebGLRenderer({
         alpha: true
     });
 renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFShadowMap;
 renderer.setSize(window.innerWidth, window.innerHeight);
 sceneController.scene.background = bgTexture;
 const platformForRun = new THREE.Mesh(
@@ -52,16 +53,6 @@ const platformForRun = new THREE.Mesh(
     ));
 platformForRun.receiveShadow = true;
 EditPlatform();
-const light = new THREE.DirectionalLight('#ffffff', 7);
-light.castShadow = true;
-light.shadow.camera.near = 0.5;
-light.shadow.camera.far = 100;
-light.shadow.camera.left = -50;
-light.shadow.camera.right = 50;
-light.shadow.camera.top = 50;
-light.shadow.camera.bottom = -50;
-light.position.set(5, 10, 5);
-sceneController.scene.add(new THREE.DirectionalLightHelper(light));
 let scoreText = await createTextMesh("Take coin, avoid bomb", 0.5, '#cc6d00');
 scoreText.scale.set(0.1,0.1,0.0001);
 scoreText.material.depthFunc = 7;
@@ -311,7 +302,7 @@ function addingGateInteraction() {
 }
 function createGameScene() {
     sceneController.scene.add(platformForRun);
-    sceneController.scene.add(light);
+    sceneController.createSun()
     sceneController.scene.add(sceneController.camera);
 }
 function PreparationScene() {

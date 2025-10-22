@@ -1,6 +1,7 @@
 ﻿import {FBXLoader} from "three/examples/jsm/loaders/FBXLoader";
 import {FontLoader} from "three/examples/jsm/loaders/FontLoader";
-import {AudioLoader} from "three";
+import {AudioLoader, Mesh} from "three";
+import * as THREE from "three";
 
 export class AssetLoader {
     private readonly _fbxLoader = new FBXLoader();
@@ -20,8 +21,18 @@ export class AssetLoader {
     public async importAudio(url: any){
         return await this._audioLoader.loadAsync(url);
     }
-    public async importModel(url: any) {
-        return await this._fbxLoader.loadAsync(url);
+    public async importModel(url: string): Promise<THREE.Object3D> {
+        const model = await this._fbxLoader.loadAsync(url);
+
+        // Настройка теней и материалов
+        model.traverse((child) => {
+            if ((child as Mesh).isMesh) {
+                const mesh = child as Mesh;
+                mesh.castShadow = true;
+                mesh.receiveShadow = true;
+            }
+        });
+        return model;
     }
 
     async loadAnimation() {
