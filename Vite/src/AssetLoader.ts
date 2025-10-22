@@ -25,18 +25,21 @@ export class AssetLoader {
     }
 
     async loadAnimation() {
-        const playerDance = await this.importModel("public/Dance.fbx");
+        const playerDance = await this.importModel("Dance.fbx");
         playerDance.rotation.y = Math.PI * 0.5;
         playerDance.position.y = -0.15;
         playerDance.scale.set(0.004, 0.004, 0.004);
-        const playerRun = await this.importModel("public/Running.fbx");
+        playerDance.castShadow = true;
+        const playerRun = await this.importModel("Running.fbx");
         playerRun.rotation.y = Math.PI/1;
         playerRun.position.y = -0.15;
         playerRun.scale.set(0.004, 0.004, 0.004);
-        const playerIdle = await this.importModel("public/Idle.fbx");
+        playerRun.castShadow = true;
+        const playerIdle = await this.importModel("Idle.fbx");
         playerIdle.rotation.y = Math.PI/1;
         playerIdle.position.y = -0.15;
         playerIdle.scale.set(0.004, 0.004, 0.004);
-        return {playerDance, playerRun: playerRun, playerIdle};
+        playerIdle.castShadow = true;
+        return {playerDance: playerDance, playerRun: playerRun, playerIdle};
     }
 }

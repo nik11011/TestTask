@@ -13,12 +13,12 @@ export class UILayout {
         y: 0,
         z: 0,
     }
-    buttonSoundPos = {
+    buttonSoundPosition = {
         x:0,
         y:0,
         z:0,
     }
-    scoreTextPos = {
+    scoreTextPosition = {
         x: 0,
         y: 0,
         z: 0

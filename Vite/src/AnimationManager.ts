@@ -1,5 +1,5 @@
 ﻿import * as THREE from "three"
-import {AnimationAction, AnimationMixer} from "three";
+import {AnimationAction} from "three";
 
 export class AnimationManager{
     mixer: THREE.AnimationMixer;
@@ -15,6 +15,4 @@ export class AnimationManager{
     playAnimation(){
         this.action.play();
     }
-
-
 }

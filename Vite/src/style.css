@@ -15,16 +15,6 @@ html, body{
 
 @font-face {
     font-family: 'Custom';
-    src: url('./public/LiberationSans.ttf') format('truetype');
-}
-
-@font-face {
-    font-family: '3d';
-    src: url('./three/examples/fonts/helvetiker_bold.typeface.json') format('truetype');
-}
-
-@font-face {
-    font-family: 'Custom';
     src:url("../public/LiberationSans.ttf");
     font-weight: normal;
     font-style: normal

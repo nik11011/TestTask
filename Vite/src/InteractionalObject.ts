@@ -9,6 +9,8 @@ export class InteractionalObject{
         this.model.position.x = x;
         this.interactionalZone = 0.2;
         this.model.position.z = z;
+        this.model.castShadow = true;
+        this.model.receiveShadow = true;
     }
 
     OnTrigger(playerModel:Object3D):boolean{
