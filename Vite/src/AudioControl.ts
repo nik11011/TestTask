@@ -3,7 +3,7 @@
 
 export class AudioControl{
     listener = new THREE.AudioListener();
-    volume: boolean = false;
+    volume: boolean = true;
     audioLoader = new THREE.AudioLoader();
     loopSound = new THREE.Audio(this.listener);
     coinHopSound = new THREE.Audio(this.listener);

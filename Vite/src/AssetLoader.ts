@@ -30,6 +30,7 @@ export class AssetLoader {
                 const mesh = child as Mesh;
                 mesh.castShadow = true;
                 mesh.receiveShadow = true;
+
             }
         });
         return model;

@@ -16,9 +16,11 @@ import {InputEventsManager} from "./InputEventsManager";
 import {Tutorial} from "./Tutorial";
 import {TextBox3D} from "./TextBox3D";
 import {UIManager} from "./UIManager";
+import TWEEN from '@tweenjs/tween.js';
+import {EndGame} from "./EndGame";
 
 
-let targetRotate = Math.PI/1;
+let targetRotate = Math.PI;
 let uiLayout = new UILayout();
 let {clock, deltaTime, canvas, bgTexture, canvasAspect, player} = PreparationScene();
 let fps = 60;
@@ -43,7 +45,7 @@ const renderer = new THREE.WebGLRenderer({
         alpha: true
     });
 renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFShadowMap;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.setSize(window.innerWidth, window.innerHeight);
 sceneController.scene.background = bgTexture;
 const platformForRun = new THREE.Mesh(
@@ -53,7 +55,7 @@ const platformForRun = new THREE.Mesh(
     ));
 platformForRun.receiveShadow = true;
 EditPlatform();
-let scoreText = await createTextMesh("Take coin, avoid bomb", 0.5, '#cc6d00');
+let scoreText = await createTextMesh("Take coin, avoid bomb", 0.5, '#ff8900');
 scoreText.scale.set(0.1,0.1,0.0001);
 scoreText.material.depthFunc = 7;
 
@@ -86,7 +88,7 @@ let win:number = 0;
 let textureOffSound = await textureLoader.loadAsync('sound_off_coffee.png');
 let textureOnSound = await textureLoader.loadAsync('sound_on_coffee.png');
 let buttonOfSound = new THREE.MeshBasicMaterial({
-    map: textureOffSound,
+    map: textureOnSound,
     transparent:true,
     depthFunc: 1
 });
@@ -131,7 +133,6 @@ let finger = new THREE.Mesh(
     fingerMaterial
 );
 finger.scale.set(0.5,0.5,0.5);
-let fingerAnimFrame = 0;
 let tutorialText = await createTextMesh("Touch and swipe !", 1, "#000000");
 tutorialText.scale.set(
     0.1, 0.1, 0.00001
@@ -149,6 +150,15 @@ let uiManager = new UIManager(
     uiLayout,
     renderer
 )
+
+let endGame = new EndGame(
+    sceneController,
+    uiManager,
+    finger,
+    scoreText,
+    textPlane,
+    player
+)
 uiManager.sizeOnScreen();
 update();
 function update(){
@@ -156,8 +166,7 @@ function update(){
     let delta = clock.getDelta();
     accumulatedTime += delta;
     accumulatedTime -= fixedDelta;
-    tutorial.Tutorial(firstTouch, 2*fixedDelta);
-    //Tutorial();
+    tutorial.Tutorial(firstTouch, fixedDelta);
     inputManager.moveToSide(firstTouch, targetRotate, fixedDelta);
     if (playerDeath == false){
         for(let bomb of bombs){
@@ -181,12 +190,10 @@ function update(){
     const imageAspect = bgTexture.image ? bgTexture.image.width / bgTexture.image.height : 1;
     const aspect = imageAspect / canvasAspect;
     NormalizeBGTexture(aspect)
-    window.requestAnimationFrame(update);
     if (player.playerModel.position.z <= -24) {
         if (win == 0) {
             win+=1;
             audioControl.playWinSounds(win);
-            //removeObject(player.playerModel);
             player.replaceModel(playerDance);
             sceneController.scene.add(player.playerModel);
             animationManager.changeAnimation(player.playerModel);
@@ -221,38 +228,18 @@ function update(){
     if(playerDeath==true || win>0)
     {
         if (secondAfterFinal>=5) {
-            sceneController.camera.position.z = -60;
-            uiManager.createInstallButton();
-            uiManager.createRestartButton();
-            finger.position.z = installButton.textBox.position.z+0.2;
-            finger.position.y = installButton.textBox.position.y-0.1;
-            finger.position.x = installButton.textBox.position.x+0.2;
-            sceneController.scene.add(finger);
-            scoreText.position.z = sceneController.camera.position.z - uiManager.cameraIndent.z;
-            textPlane.position.z = scoreText.position.z;
-            scoreText.position.x = sceneController.camera.position.x;
-            textPlane.position.x = scoreText.position.x;
-            updateTextMesh(scoreText, "You score: " + player.score)
-            scoreText.scale.set(0.075,0.075,0.0001);
-            scoreText.lookAt(sceneController.camera.position);
-            textPlane.lookAt(sceneController.camera.position);
+            endGame.realise();
         }
         else secondAfterFinal+=fixedDelta;
     }
-    if (fingerAnimFrame<=10) {
-        finger.position.x-=fixedDelta;
-        fingerAnimFrame+=1;
-    }
-    else{
-        finger.position.x = installButton.textBox.position.x+0.2;
-        fingerAnimFrame = 0;
-    }
-
+    endGame.tutorial();
     if (!inputManager.moving) {
         player.playerModel.rotation.y += (targetRotate - player.playerModel.rotation.y) * 0.5;
     }
     animationManager.mixer.update(fixedDelta);
     console.log(deltaTime);
+    window.requestAnimationFrame(TWEEN.update);
+    window.requestAnimationFrame(update);
     renderer.render(sceneController.scene, sceneController.camera);
 }
 

@@ -1,6 +1,7 @@
 ﻿import * as THREE from "three";
 import {TextMesh} from "./Font3D";
 import {SceneControl} from "./SceneControl";
+import TWEEN, {Tween} from '@tweenjs/tween.js';
 
 
 export class Tutorial {
@@ -15,10 +16,12 @@ export class Tutorial {
     sceneController: SceneControl;
     right:boolean = false;
     left:boolean = true;
+    tween: Tween;
     constructor(_tutorialText: TextMesh, _sceneController: SceneControl) {
         this.sceneController = _sceneController;
         this.fingerMaterial.map = this.textureLoader.load("fingerIcon.png");
         this.fingerMaterial.transparent = true;
+        this.fingerMaterial.alphaTest = 0.1;
         this.fingerTutorial = new THREE.Mesh(this.fingerPlaneGeometry, this.fingerMaterial);
         this.fingerTutorial.position.z = 0.3
         this.fingerTutorial.position.y = 0.3
@@ -35,8 +38,13 @@ export class Tutorial {
     }
 
     MoveToLeftPosition(fixedDelta:number) {
-        if (this.fingerTutorial.position.x >= -0.4) {
-            this.fingerTutorial.position.x -= fixedDelta;
+        if (this.fingerTutorial.position.x >= -0.5+0.1) {
+            new TWEEN.Tween({x: this.fingerTutorial.position.x})
+                .to({ x: -0.5 }, 1000)
+                .onUpdate((cords) => {
+                    this.fingerTutorial.position.x = cords.x;
+                })
+                .start();
         } else {
             this.right = false;
             this.left = true;
@@ -45,8 +53,13 @@ export class Tutorial {
 
 
     MoveToRightPosition(fixedDelta:number) {
-        if (this.fingerTutorial.position.x <= 0.4) {
-            this.fingerTutorial.position.x += fixedDelta;
+        if (this.fingerTutorial.position.x <= 0.5-0.1){
+            new TWEEN.Tween({x: this.fingerTutorial.position.x})
+                .to({ x: 0.5 }, 1000)
+                .onUpdate((cords) => {
+                    this.fingerTutorial.position.x = cords.x;
+                })
+                .start();
         } else {
             this.right = true;
             this.left = false;
@@ -55,13 +68,8 @@ export class Tutorial {
 
 
     AnimationTutorial(fixedDelta:number) {
-        console.log(`AnimationTutorial called, left: ${this.left}, right: ${this.right}`);
-        if (this.left == false) {
-            this.MoveToLeftPosition(fixedDelta);
-        }
-        if (this.right == false) {
-            this.MoveToRightPosition(fixedDelta);
-        }
+        if (this.left && !this.right) this.MoveToRightPosition(fixedDelta);
+        else if (this.right && !this.left) this.MoveToLeftPosition(fixedDelta);
     }
 
 

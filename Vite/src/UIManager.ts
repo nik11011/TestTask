@@ -53,7 +53,7 @@ export class UIManager{
         this.scoreText.position.set(
             this.sceneController.camera.position.x + scoreTextPos.x,
             scoreTextPos.y,
-            this.player.playerModel.position.z + scoreTextPos.z
+            this.player.playerModel.position.z
         )
         this.scoreText.lookAt(
             this.sceneController.camera.position
@@ -96,12 +96,12 @@ export class UIManager{
 
     private resizeForWidthScreen() {
         this.uiLayout.scoreTextPosition = {
-            x: -2,
+            x: -1,
             y: 1.5,
             z: this.player.playerModel.position.z
         }
         this.uiLayout.buttonSoundPosition = {
-            x: 0.4,
+            x: 0.2,
             y: -0.1,
             z: -1,
         }
