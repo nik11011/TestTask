@@ -1,7 +1,7 @@
 ﻿import * as THREE from "three";
 import {TextMesh} from "./Font3D";
 import {SceneControl} from "./SceneControl";
-import TWEEN, {Tween} from '@tweenjs/tween.js';
+import TWEEN from '@tweenjs/tween.js';
 
 
 export class Tutorial {
@@ -16,7 +16,6 @@ export class Tutorial {
     sceneController: SceneControl;
     right:boolean = false;
     left:boolean = true;
-    tween: Tween;
     constructor(_tutorialText: TextMesh, _sceneController: SceneControl) {
         this.sceneController = _sceneController;
         this.fingerMaterial.map = this.textureLoader.load("fingerIcon.png");
