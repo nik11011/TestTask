@@ -1,12 +1,11 @@
 ﻿import {FBXLoader} from "three/examples/jsm/loaders/FBXLoader";
 import {FontLoader} from "three/examples/jsm/loaders/FontLoader";
-import {AudioLoader, Mesh} from "three";
-import * as THREE from "three";
+import {AudioLoader, Mesh, Object3D} from "three";
 
-export class AssetLoader {
-    private readonly _fbxLoader = new FBXLoader();
-    private readonly _fontLoader = new FontLoader();
-    private readonly _audioLoader = new AudioLoader();
+export class AssetLoaderComponent {
+    private readonly _fbxLoader: FBXLoader = new FBXLoader();
+    private readonly _fontLoader: FontLoader = new FontLoader();
+    private readonly _audioLoader: AudioLoader = new AudioLoader();
     constructor() {
     }
 
@@ -21,7 +20,7 @@ export class AssetLoader {
     public async importAudio(url: any){
         return await this._audioLoader.loadAsync(url);
     }
-    public async importModel(url: string): Promise<THREE.Object3D> {
+    public async importModel(url: string): Promise<Object3D> {
         const model = await this._fbxLoader.loadAsync(url);
 
         // Настройка теней и материалов

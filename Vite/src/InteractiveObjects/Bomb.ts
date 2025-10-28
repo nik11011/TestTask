@@ -1,8 +1,8 @@
 ﻿import {Object3D, Scene} from "three";
-import {InteractionalObject} from "./InteractionalObject";
+import {InteractionalObjectComponent} from "./InteractionalObjectComponent";
 
 
-export class Bomb extends InteractionalObject{
+export class Bomb extends InteractionalObjectComponent{
     constructor(_scene: Scene, x:number, z:number, _model: Object3D) {
         super(_scene, x, z, _model);
         this.model.position.y = -0.1;

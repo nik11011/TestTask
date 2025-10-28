@@ -1,10 +1,10 @@
 ﻿import {Object3D, Scene} from "three";
 
 
-export class InteractionalObject{
-    interactionalZone:number;
-    model: Object3D;
-    constructor(_scene: Scene, x:number, z:number, _model: Object3D) {
+export class InteractionalObjectComponent {
+    public interactionalZone: number;
+    public readonly model: Object3D;
+    constructor(scene: Scene, x:number, z:number, _model: Object3D) {
         this.model = _model;
         this.model.position.x = x;
         this.interactionalZone = 0.2;

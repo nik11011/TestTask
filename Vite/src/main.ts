@@ -1,26 +1,26 @@
 import * as THREE from 'three';
-import {Player} from './Player';
-import {AssetLoader} from "./AssetLoader";
-import {Coin} from "./Coin";
-import {Bomb} from "./Bomb";
-import {Wrath} from "./Wrath";
-import {interactionalWithScore, WrathInteraction} from "./WrathProperties"
-import {Explosive} from "./Explosive";
-import {createTextMesh, updateTextMesh} from "./Font3D";
-import {UILayout} from "./UILayout";
-import {AudioControl} from "./AudioControl";
-import {SceneControl} from "./SceneControl";
-import {AnimationManager} from "./AnimationManager";
-import {InputEventsManager} from "./InputEventsManager";
-import {Tutorial} from "./Tutorial";
-import {TextBox3D} from "./TextBox3D";
-import {UIManager} from "./UIManager";
+import {Player} from './InteractiveObjects/Player';
+import {AssetLoaderComponent} from "./AssetLoaderComponent";
+import {Coin} from "./InteractiveObjects/Coin";
+import {Bomb} from "./InteractiveObjects/Bomb";
+import {Wrath} from "./InteractiveObjects/Wrath";
+import {InteractionalScoreComponent, WrathInteraction} from "./WrathPropertiesComponent"
+import {ExplosiveComponent} from "./ExplosiveComponent";
+import {createTextMesh, updateTextMesh} from "./Font3DComponent";
+import {UILayoutComponent} from "./UILayoutComponent";
+import {AudioControlComponent} from "./AudioControlComponent";
+import {SceneControlComponent} from "./SceneControlComponent";
+import {AnimationManagerComponent} from "./AnimationManagerComponent";
+import {InputEventsComponent} from "./InputEventsComponent";
+import {BeginTutorial} from "./Tutorials/BeginTutorial";
+import {TextBox3DComponent} from "./TextBox3DComponent";
+import {UIManagerComponent} from "./UIManagerComponent";
 import TWEEN from '@tweenjs/tween.js';
-import {EndGame} from "./EndGame";
+import {EndGameTutorial} from "./Tutorials/EndGameTutorial";
 
 
 let targetRotate = Math.PI;
-let uiLayout = new UILayout();
+let uiLayout = new UILayoutComponent();
 let {clock, canvas, bgTexture, canvasAspect, player} = PreparationScene();
 let fps = 60;
 let fixedDelta = 1.0 / fps;
@@ -29,13 +29,12 @@ let secondAfterFinal = 0;
 
 
 
-let sceneController = new SceneControl();
+let sceneController = new SceneControlComponent();
 
-let audioControl = new AudioControl();
+let audioControl = new AudioControlComponent();
 
 audioControl.loadSounds();
 let textureLoader = new THREE.TextureLoader();
-let textureTextPlane = await textureLoader.loadAsync('textPlane.png');
 
 NormalizeBGTexture(canvasAspect);
 const renderer = new THREE.WebGLRenderer({
@@ -53,15 +52,16 @@ const platformForRun = new THREE.Mesh(
     ));
 platformForRun.receiveShadow = true;
 EditPlatform();
-let scoreText = await createTextMesh("Take coin, avoid bomb", 0.5, '#ff8900');
-scoreText.scale.set(0.1,0.1,0.0001);
-scoreText.material.depthFunc = 7;
 
 
-sceneController.scene.add(scoreText);
+const scoreText: TextBox3DComponent = new TextBox3DComponent(
+    await createTextMesh("Score", 1, "#ff9000"),
+    "#970000")
+scoreText.addToScene(sceneController.scene);
+
 createGameScene();
 sceneController.camera.add(audioControl.listener);
-const assetLoader = new AssetLoader();
+const assetLoader = new AssetLoaderComponent();
 let coins = new Array<Coin>();
 let bombs = new Array<Bomb>();
 let wraths = new Array<Wrath>();
@@ -71,27 +71,18 @@ addingGateInteraction();
 const {playerDance, playerRun, playerIdle} = await assetLoader.loadAnimation();
 player.replaceModel(playerIdle)
 sceneController.scene.add(player.playerModel);
-let animationManager = new AnimationManager();
+let animationManager = new AnimationManagerComponent();
 animationManager.changeAnimation(player.playerModel);
 animationManager.playAnimation();
-let expl = new Explosive();
-
-let textPlaneGeometry = new THREE.PlaneGeometry(0.75,0.25);
-
-let textPlaneMaterial = new THREE.MeshBasicMaterial({color: "#970000" ,map: textureTextPlane, transparent:true});
-let textPlane = new THREE.Mesh(
-    textPlaneGeometry,
-    textPlaneMaterial
-);
-sceneController.scene.add(textPlane);
+let expl = new ExplosiveComponent();
 
 
 
 
-let installButton = new TextBox3D(
+let installButton = new TextBox3DComponent(
     await createTextMesh("Install", 1, "#249500"),
     '#baff93');
-let restartButton = new TextBox3D(
+let restartButton = new TextBox3DComponent(
     await createTextMesh("Restart", 1, "#249500"),
     '#baff93');
 
@@ -113,27 +104,27 @@ tutorialText.scale.set(
     0.1, 0.1, 0.00001
 )
 tutorialText.position.y = 0.6
-let tutorial = new Tutorial(tutorialText, sceneController);
-let uiManager = new UIManager(
+let tutorial = new BeginTutorial(tutorialText, sceneController);
+let uiManager = new UIManagerComponent(
     player,
     sceneController,
     restartButton,
     installButton,
-    textPlane,
-    scoreText,
+    scoreText.textBox,
+    scoreText.text,
     uiLayout,
     renderer
 )
 
-let endGame = new EndGame(
+let endGame = new EndGameTutorial(
     sceneController,
     uiManager,
     finger,
-    scoreText,
-    textPlane,
+    scoreText.text,
+    scoreText.textBox,
     player
 )
-let inputManager = new InputEventsManager(
+let inputManager = new InputEventsComponent(
     player,
     uiManager,
     sceneController,
@@ -144,7 +135,7 @@ let inputManager = new InputEventsManager(
 uiManager.sizeOnScreen();
 update();
 function update(){
-    playTracks();
+    audioControl.playTracks(player);
     let delta = clock.getDelta();
     accumulatedTime += delta;
     accumulatedTime -= fixedDelta;
@@ -190,14 +181,14 @@ function update(){
             audioControl.playCoinTake();
             player.score += 1;
             coin.interactionalZone = 0;
-            updateTextMesh(scoreText, `${player.score}`)
+            updateTextMesh(scoreText.text, `${player.score}`)
             removeObject(coin.model);
             }
         }
     for (let wrath of wraths) {
         if (wrath.OnEnterInWrath(player.playerModel)){
             player.score = wrath.wrathInteraction.doInteraction(player.score);
-            updateTextMesh(scoreText, `${player.score}`)
+            updateTextMesh(scoreText.text, `${player.score}`)
             audioControl.WrathSoundPlay();
             removeObject(wrath.model);
             updateTextMesh(wrath.textMesh, "");
@@ -261,12 +252,12 @@ function EditPlatform() {
     platformForRun.position.z = -18;
 }
 function addingGateInteraction() {
-    wraths[0].wrathInteraction = new WrathInteraction(interactionalWithScore.MULTIPLY, 4);
-    wraths[1].wrathInteraction = new WrathInteraction(interactionalWithScore.MINUS, 1);
-    wraths[2].wrathInteraction = new WrathInteraction(interactionalWithScore.PLUS, 2);
-    wraths[3].wrathInteraction = new WrathInteraction(interactionalWithScore.DIVIDE, 2);
-    wraths[4].wrathInteraction = new WrathInteraction(interactionalWithScore.DIVIDE, 5);
-    wraths[5].wrathInteraction = new WrathInteraction(interactionalWithScore.MULTIPLY, 4);
+    wraths[0].wrathInteraction = new WrathInteraction(InteractionalScoreComponent.MULTIPLY, 4);
+    wraths[1].wrathInteraction = new WrathInteraction(InteractionalScoreComponent.MINUS, 1);
+    wraths[2].wrathInteraction = new WrathInteraction(InteractionalScoreComponent.PLUS, 2);
+    wraths[3].wrathInteraction = new WrathInteraction(InteractionalScoreComponent.DIVIDE, 2);
+    wraths[4].wrathInteraction = new WrathInteraction(InteractionalScoreComponent.DIVIDE, 5);
+    wraths[5].wrathInteraction = new WrathInteraction(InteractionalScoreComponent.MULTIPLY, 4);
 }
 function createGameScene() {
     sceneController.scene.add(platformForRun);
@@ -299,13 +290,12 @@ window.addEventListener('mousemove', inputManager.onMouseMove);
 window.addEventListener('mousedown', inputManager.onClick);
 window.addEventListener('touchstart', inputManager.onClick);
 
-function playTracks() {
-    if (player.playerDeath == false && player.win == 0 && audioControl.volume == true) {
-        audioControl.loopSound.play();
-    }
-    else
-    {
-        audioControl.loopSound.pause();
+function disableZoom() {
+    const viewport = document.querySelector("meta[name=viewport]");
+    if (viewport) {
+        viewport.setAttribute("content", "user-scalable=no");
     }
 }
+
+disableZoom();
 

@@ -8,7 +8,7 @@ interface TextSpriteOptions {
     backgroundColor?: string;
 }
 
-export function createTextSprite(text: string, options: TextSpriteOptions = {}): THREE.Sprite & { updateText: (newText: string) => void } {
+export function createTextSprite (text: string, options: TextSpriteOptions = {}): THREE.Sprite & { updateText: (newText: string) => void } {
     const {
         font = '20px Custom',
         textColor = '#ffffff',

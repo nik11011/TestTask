@@ -1,8 +1,8 @@
 ﻿import {Object3D, Scene} from "three";
-import {InteractionalObject} from "./InteractionalObject";
+import {InteractionalObjectComponent} from "./InteractionalObjectComponent";
 
 
-export class Coin extends InteractionalObject{
+export class Coin extends InteractionalObjectComponent{
     cost:number = 1;
     constructor(_scene: Scene, x:number, z:number, _model: Object3D) {
         super(_scene, x, z, _model);
