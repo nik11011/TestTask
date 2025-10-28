@@ -5,7 +5,6 @@ import {Coin} from "./Coin";
 import {Bomb} from "./Bomb";
 import {Wrath} from "./Wrath";
 import {interactionalWithScore, WrathInteraction} from "./WrathProperties"
-import {Object3DEventMap} from "three";
 import {Explosive} from "./Explosive";
 import {createTextMesh, updateTextMesh} from "./Font3D";
 import {UILayout} from "./UILayout";
@@ -22,13 +21,13 @@ import {EndGame} from "./EndGame";
 
 let targetRotate = Math.PI;
 let uiLayout = new UILayout();
-let {clock, deltaTime, canvas, bgTexture, canvasAspect, player} = PreparationScene();
+let {clock, canvas, bgTexture, canvasAspect, player} = PreparationScene();
 let fps = 60;
 let fixedDelta = 1.0 / fps;
 let accumulatedTime = 0.0;
 let secondAfterFinal = 0;
 
-let inputManager = new InputEventsManager(player);
+
 
 let sceneController = new SceneControl();
 
@@ -37,7 +36,6 @@ let audioControl = new AudioControl();
 audioControl.loadSounds();
 let textureLoader = new THREE.TextureLoader();
 let textureTextPlane = await textureLoader.loadAsync('textPlane.png');
-let firstTouch = false;
 
 NormalizeBGTexture(canvasAspect);
 const renderer = new THREE.WebGLRenderer({
@@ -60,7 +58,6 @@ scoreText.scale.set(0.1,0.1,0.0001);
 scoreText.material.depthFunc = 7;
 
 
-
 sceneController.scene.add(scoreText);
 createGameScene();
 sceneController.camera.add(audioControl.listener);
@@ -77,21 +74,7 @@ sceneController.scene.add(player.playerModel);
 let animationManager = new AnimationManager();
 animationManager.changeAnimation(player.playerModel);
 animationManager.playAnimation();
-let playerSpeed = 0;
 let expl = new Explosive();
-let playerDeath = false;
-
-let win:number = 0;
-
-
-
-let textureOffSound = await textureLoader.loadAsync('sound_off_coffee.png');
-let textureOnSound = await textureLoader.loadAsync('sound_on_coffee.png');
-let buttonOfSound = new THREE.MeshBasicMaterial({
-    map: textureOnSound,
-    transparent:true,
-    depthFunc: 1
-});
 
 let textPlaneGeometry = new THREE.PlaneGeometry(0.75,0.25);
 
@@ -102,16 +85,8 @@ let textPlane = new THREE.Mesh(
 );
 sceneController.scene.add(textPlane);
 
-let buttonSoundGeometry = new THREE.PlaneGeometry(0.2,0.2);
-let buttonSound = new THREE.Mesh(
-    buttonSoundGeometry,
-    buttonOfSound
-);
-sceneController.scene.add(buttonSound)
 
 
-const raycaster = new THREE.Raycaster();
-const rayTouch = new THREE.Vector2();
 
 let installButton = new TextBox3D(
     await createTextMesh("Install", 1, "#249500"),
@@ -142,7 +117,6 @@ let tutorial = new Tutorial(tutorialText, sceneController);
 let uiManager = new UIManager(
     player,
     sceneController,
-    buttonSound,
     restartButton,
     installButton,
     textPlane,
@@ -159,28 +133,37 @@ let endGame = new EndGame(
     textPlane,
     player
 )
+let inputManager = new InputEventsManager(
+    player,
+    uiManager,
+    sceneController,
+    audioControl,
+    playerRun,
+    animationManager
+);
 uiManager.sizeOnScreen();
+FirstplayTracks();
 update();
 function update(){
     playTracks();
     let delta = clock.getDelta();
     accumulatedTime += delta;
     accumulatedTime -= fixedDelta;
-    tutorial.Tutorial(firstTouch, fixedDelta);
-    inputManager.moveToSide(firstTouch, targetRotate, fixedDelta);
-    if (playerDeath == false){
+    tutorial.Tutorial(inputManager.firstTouch, fixedDelta);
+    inputManager.moveToSide(inputManager.firstTouch, targetRotate, fixedDelta);
+    if (player.playerDeath == false){
         for(let bomb of bombs){
             if (bomb.OnTrigger(player.playerModel)) {
-                audioControl.playLoseSounds(playerDeath);
+                audioControl.playLoseSounds(player.playerDeath);
                 removeObject(player.playerModel);
                 removeObject(bomb.model);
                 expl.createExplosive(sceneController.scene,
                     bomb.model.position.x,
                     bomb.model.position.y+0.1,
                     bomb.model.position.z)
-                playerSpeed = 0;
+                player.playerSpeed = 0;
                 inputManager.sideMoveSpeed = 0;
-                playerDeath = true;
+                player.playerDeath = true;
             }
         }
     }
@@ -191,14 +174,14 @@ function update(){
     const aspect = imageAspect / canvasAspect;
     NormalizeBGTexture(aspect)
     if (player.playerModel.position.z <= -24) {
-        if (win == 0) {
-            win+=1;
-            audioControl.playWinSounds(win);
+        if (player.win == 0) {
+            player.win+=1;
+            audioControl.playWinSounds(player.win);
             player.replaceModel(playerDance);
             sceneController.scene.add(player.playerModel);
             animationManager.changeAnimation(player.playerModel);
             animationManager.playAnimation();
-            playerSpeed = 0;
+            player.playerSpeed = 0;
             inputManager.sideMoveSpeed = 0;
         }
     }
@@ -221,11 +204,11 @@ function update(){
             updateTextMesh(wrath.textMesh, "");
         }
     }
-    if(firstTouch)
+    if(inputManager.firstTouch)
     {
-    run(playerSpeed);
+    run(player.playerSpeed);
     }
-    if(playerDeath==true || win>0)
+    if(player.playerDeath==true || player.win>0)
     {
         if (secondAfterFinal>=5) {
             endGame.realise();
@@ -237,7 +220,6 @@ function update(){
         player.playerModel.rotation.y += (targetRotate - player.playerModel.rotation.y) * 0.5;
     }
     animationManager.mixer.update(fixedDelta);
-    console.log(deltaTime);
     window.requestAnimationFrame(TWEEN.update);
     window.requestAnimationFrame(update);
     renderer.render(sceneController.scene, sceneController.camera);
@@ -248,13 +230,13 @@ function removeObject(model:THREE.Object3D){
     model.remove();
     model.clear();
 }
-function glueCameraTo(playerModel:THREE.Object3D<Object3DEventMap>, camera:THREE.Camera) {
+function glueCameraTo(playerModel:THREE.Object3D, camera:THREE.Camera) {
         camera.position.x = playerModel.position.x;
         camera.position.z = playerModel.position.z + uiManager.cameraIndent.z;
         uiManager.UIpositioner(uiManager.uiLayout.buttonSoundPosition, uiManager.uiLayout.scoreTextPosition);
 }
 function run(speed:number) {
-    if(playerDeath == true || win!=0) {
+    if(player.playerDeath == true || player.win!=0) {
         audioControl.stepSound.pause();
     }
     else {
@@ -294,13 +276,12 @@ function createGameScene() {
 }
 function PreparationScene() {
     const clock = new THREE.Clock();
-    let deltaTime = 0;
     const canvas: Element = document.querySelector('#c');
     const loader = new THREE.TextureLoader();
     const bgTexture = loader.load('public/SkyBox.jpg')
     let canvasAspect = canvas.clientWidth / canvas.clientHeight
     const player = new Player();
-    return {clock, deltaTime, canvas, bgTexture, canvasAspect, player};
+    return {clock, canvas, bgTexture, canvasAspect, player};
 }
 
 
@@ -316,45 +297,17 @@ window.addEventListener('mousedown', inputManager.onMouseDown);
 window.addEventListener('mouseup', inputManager.onMouseUp);
 window.addEventListener('touchmove', inputManager.onTouchMove);
 window.addEventListener('mousemove', inputManager.onMouseMove);
-window.addEventListener('click', onClick);
-window.addEventListener('touchstart', onClick);
-function onClick(event) {
-    rayTouch.x = (event.clientX / window.innerWidth) * 2 - 1;
-    rayTouch.y = -(event.clientY / window.innerHeight) * 2 + 1;
-    raycaster.setFromCamera(rayTouch, sceneController.camera);
-    const intersects = raycaster.intersectObjects(sceneController.scene.children, false);
-    if (intersects.length > 0)
-    {
-        const firstIntersect = intersects[0];
-        if (firstIntersect.object == buttonSound){
-            if (buttonSound.material.map == textureOffSound) {
-                buttonSound.material.map = textureOnSound;
-                audioControl.volume = true;
-            }
-            else{
-                buttonSound.material.map = textureOffSound;
-                audioControl.volume = false;
-            }
-        }
-        else if(firstIntersect.object == restartButton.textBox || firstIntersect.object == restartButton.text){
-            location.reload();
-        }
-        else if(firstIntersect.object != buttonSound && firstIntersect.object != restartButton.textBox)
-            if (win == 0)
-            if (firstTouch == false) {
-                firstTouch = true;
-                scoreText.scale.set(0.1,0.1,0.0001);
-                updateTextMesh(scoreText, "Score");
-                playerSpeed = 2;
-                player.replaceModel(playerRun);
-                sceneController.scene.add(player.playerModel);
-                animationManager.changeAnimation(player.playerModel);
-                animationManager.playAnimation();
-        }
-    }
+window.addEventListener('mousedown', inputManager.onClick);
+window.addEventListener('touchstart', inputManager.onClick);
+
+
+
+    function FirstplayTracks() {
+        audioControl.loopSound.autoplay = true;
 }
+
 function playTracks() {
-    if (playerDeath == false && win == 0 && audioControl.volume == true) {
+    if (player.playerDeath == false && player.win == 0 && audioControl.volume == true) {
         audioControl.loopSound.play();
     }
     else
@@ -362,3 +315,4 @@ function playTracks() {
         audioControl.loopSound.pause();
     }
 }
+

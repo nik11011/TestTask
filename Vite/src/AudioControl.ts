@@ -9,6 +9,8 @@ export class AudioControl{
     coinHopSound = new THREE.Audio(this.listener);
     bombHopSound = new THREE.Audio(this.listener);
     stepSound = new THREE.Audio(this.listener);
+    step2Sound = new THREE.Audio(this.listener);
+    step3Sound = new THREE.Audio(this.listener);
     loseMusic = new THREE.Audio(this.listener);
     winMusic = new THREE.Audio(this.listener);
     wrathSound = new THREE.Audio(this.listener);

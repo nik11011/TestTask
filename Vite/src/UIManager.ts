@@ -4,12 +4,13 @@ import * as THREE from "three"
 import {TextMesh} from "./Font3D";
 import {UILayout} from "./UILayout";
 import {TextBox3D} from "./TextBox3D";
+import {SoundButton} from "./SoundButton";
 
 
 export class UIManager{
     player:Player;
     sceneController: SceneControl;
-    buttonSound: THREE.Mesh;
+    buttonSound = new SoundButton();
     restartButton:TextBox3D;
     installButton:TextBox3D;
     textPlane:THREE.Mesh;
@@ -24,7 +25,6 @@ export class UIManager{
 
     constructor(_player:Player,
                 _sceneController:SceneControl,
-                _buttonSound:THREE.Mesh,
                 _restartButton:TextBox3D,
                 _installButton:TextBox3D,
                 _textPlane:THREE.Mesh,
@@ -33,13 +33,13 @@ export class UIManager{
                 _renderer: THREE.WebGLRenderer) {
         this.player = _player;
         this.sceneController = _sceneController;
-        this.buttonSound = _buttonSound;
         this.textPlane = _textPlane;
         this.scoreText = _scoreText;
         this.uiLayout = _uiLayout;
         this.installButton = _installButton;
         this.restartButton = _restartButton
         this.renderer = _renderer;
+        _sceneController.scene.add(this.buttonSound.button);
         this.sizeOnScreen = this.sizeOnScreen.bind(this);
     }
 
@@ -53,7 +53,7 @@ export class UIManager{
         this.scoreText.position.set(
             this.sceneController.camera.position.x + scoreTextPos.x,
             scoreTextPos.y,
-            this.player.playerModel.position.z
+            this.player.playerModel.position.z + scoreTextPos.z
         )
         this.scoreText.lookAt(
             this.sceneController.camera.position
@@ -69,12 +69,12 @@ export class UIManager{
     }
 
     private buttonSoundPosition(buttonSoundPos: { x: number; y: number; z: number }) {
-        this.buttonSound.position.set(
+        this.buttonSound.button.position.set(
             this.sceneController.camera.position.x + buttonSoundPos.x,
             this.sceneController.camera.position.y + buttonSoundPos.y,
             this.sceneController.camera.position.z + buttonSoundPos.z
         )
-        this.buttonSound.lookAt(
+        this.buttonSound.button.lookAt(
             this.sceneController.camera.position.x + buttonSoundPos.x,
             this.sceneController.camera.position.y,
             this.sceneController.camera.position.z,
@@ -87,7 +87,7 @@ export class UIManager{
         else if(window.innerHeight>=window.innerWidth) {
             this.resizeForHeightScreen();
         }
-        this.buttonSound.scale.set(this.uiLayout.scaleButtonSound, this.uiLayout.scaleButtonSound, 0.1);
+        this.buttonSound.button.scale.set(this.uiLayout.scaleButtonSound, this.uiLayout.scaleButtonSound, 0.1);
         this.UIpositioner(this.uiLayout.buttonSoundPosition, this.uiLayout.scoreTextPosition);
         this.sceneController.camera.aspect = window.innerWidth / window.innerHeight;
         this.sceneController.camera.updateProjectionMatrix();
@@ -96,12 +96,12 @@ export class UIManager{
 
     private resizeForWidthScreen() {
         this.uiLayout.scoreTextPosition = {
-            x: -1,
+            x: -(window.innerWidth/1000),
             y: 1.5,
             z: this.player.playerModel.position.z
         }
         this.uiLayout.buttonSoundPosition = {
-            x: 0.2,
+            x: (window.innerWidth/10000) + 0.1,
             y: -0.1,
             z: -1,
         }
