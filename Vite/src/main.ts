@@ -142,7 +142,6 @@ let inputManager = new InputEventsManager(
     animationManager
 );
 uiManager.sizeOnScreen();
-FirstplayTracks();
 update();
 function update(){
     playTracks();
@@ -299,12 +298,6 @@ window.addEventListener('touchmove', inputManager.onTouchMove);
 window.addEventListener('mousemove', inputManager.onMouseMove);
 window.addEventListener('mousedown', inputManager.onClick);
 window.addEventListener('touchstart', inputManager.onClick);
-
-
-
-    function FirstplayTracks() {
-        audioControl.loopSound.autoplay = true;
-}
 
 function playTracks() {
     if (player.playerDeath == false && player.win == 0 && audioControl.volume == true) {
