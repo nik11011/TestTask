@@ -4,10 +4,10 @@ import {WrathInteraction} from "../WrathPropertiesComponent";
 import {TextMesh} from "../Font3DComponent";
 
 export class Wrath extends InteractionalObjectComponent{
-    private readonly interactionalZoneWrathX = 0.7;
-    private readonly interactionalZoneWrathZ = 0.2;
+    private readonly _interactionalZoneWrathX = 0.7;
+    private readonly _interactionalZoneWrathZ = 0.2;
     public wrathInteraction: WrathInteraction;
-    private activatedWrath: boolean = false;
+    public activatedWrath: boolean = false;
     public textMesh: TextMesh;
     constructor(scene: Scene, x:number, z:number, model: Object3D, _textMesh:TextMesh) {
         super(scene, x, z, model);
@@ -28,10 +28,10 @@ export class Wrath extends InteractionalObjectComponent{
 
     OnEnterInWrath(Player: Object3D):boolean{
         if (
-            Player.position.x<=this.model.position.x+this.interactionalZoneWrathX &&
-            Player.position.x>=this.model.position.x-this.interactionalZoneWrathX &&
-            Player.position.z>=this.model.position.z-this.interactionalZoneWrathZ &&
-            Player.position.z<=this.model.position.z+this.interactionalZoneWrathZ &&
+            Player.position.x<=this.model.position.x+this._interactionalZoneWrathX &&
+            Player.position.x>=this.model.position.x-this._interactionalZoneWrathX &&
+            Player.position.z>=this.model.position.z-this._interactionalZoneWrathZ &&
+            Player.position.z<=this.model.position.z+this._interactionalZoneWrathZ &&
             this.activatedWrath == false
         )
         {

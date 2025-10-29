@@ -4,7 +4,6 @@ import {AssetLoaderComponent} from "./AssetLoaderComponent";
 import {Coin} from "./InteractiveObjects/Coin";
 import {Bomb} from "./InteractiveObjects/Bomb";
 import {Wrath} from "./InteractiveObjects/Wrath";
-import {InteractionalScoreComponent, WrathInteraction} from "./WrathPropertiesComponent"
 import {ExplosiveComponent} from "./ExplosiveComponent";
 import {createTextMesh, updateTextMesh} from "./Font3DComponent";
 import {UILayoutComponent} from "./UILayoutComponent";
@@ -66,7 +65,7 @@ let coins = new Array<Coin>();
 let bombs = new Array<Bomb>();
 let wraths = new Array<Wrath>();
 await createIteractionObject();
-addingGateInteraction();
+sceneController.addingGateInteraction(wraths);
 
 const {playerDance, playerRun, playerIdle} = await assetLoader.loadAnimation();
 player.replaceModel(playerIdle)
@@ -105,6 +104,7 @@ tutorialText.scale.set(
 )
 tutorialText.position.y = 0.6
 let tutorial = new BeginTutorial(tutorialText, sceneController);
+
 let uiManager = new UIManagerComponent(
     player,
     sceneController,
@@ -119,7 +119,6 @@ let uiManager = new UIManagerComponent(
 let endGame = new EndGameTutorial(
     sceneController,
     uiManager,
-    finger,
     scoreText.text,
     scoreText.textBox,
     player
@@ -132,6 +131,7 @@ let inputManager = new InputEventsComponent(
     playerRun,
     animationManager
 );
+const doubleWrathsArray = sceneController.fillDoubleWrathsInteraction(wraths);
 uiManager.sizeOnScreen();
 update();
 function update(){
@@ -194,6 +194,9 @@ function update(){
             updateTextMesh(wrath.textMesh, "");
         }
     }
+    for (let doubleWrath of doubleWrathsArray) {
+        doubleWrath.removeWrath(sceneController.scene);
+    }
     if(inputManager.firstTouch)
     {
     run(player.playerSpeed);
@@ -250,14 +253,6 @@ function NormalizeBGTexture(aspect) {
 function EditPlatform() {
     platformForRun.position.y = -0.65;
     platformForRun.position.z = -18;
-}
-function addingGateInteraction() {
-    wraths[0].wrathInteraction = new WrathInteraction(InteractionalScoreComponent.MULTIPLY, 4);
-    wraths[1].wrathInteraction = new WrathInteraction(InteractionalScoreComponent.MINUS, 1);
-    wraths[2].wrathInteraction = new WrathInteraction(InteractionalScoreComponent.PLUS, 2);
-    wraths[3].wrathInteraction = new WrathInteraction(InteractionalScoreComponent.DIVIDE, 2);
-    wraths[4].wrathInteraction = new WrathInteraction(InteractionalScoreComponent.DIVIDE, 5);
-    wraths[5].wrathInteraction = new WrathInteraction(InteractionalScoreComponent.MULTIPLY, 4);
 }
 function createGameScene() {
     sceneController.scene.add(platformForRun);

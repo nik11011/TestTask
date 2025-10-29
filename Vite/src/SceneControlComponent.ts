@@ -4,6 +4,8 @@ import {AssetLoaderComponent} from "./AssetLoaderComponent";
 import {Coin} from "./InteractiveObjects/Coin";
 import {Bomb} from "./InteractiveObjects/Bomb";
 import {DirectionalLight, PerspectiveCamera, Scene} from "three";
+import {DoubleWraths} from "./DoubleWraths";
+import {InteractionalScoreComponent, WrathInteraction} from "./WrathPropertiesComponent";
 
 export class SceneControlComponent {
     public camera: PerspectiveCamera = new PerspectiveCamera(65, window.innerWidth / window.innerHeight);
@@ -48,6 +50,23 @@ export class SceneControlComponent {
                 await this._importclass.importModel("Wrath.fbx"),
                 await createTextMesh("*4", 0.5, "#0004ff"))
         );
+    }
+
+    fillDoubleWrathsInteraction(wraths: Wrath[]) {
+        const doubleWrathsArray = new Array<DoubleWraths>(
+            new DoubleWraths(wraths[0], wraths[1]),
+            new DoubleWraths(wraths[2], wraths[3]),
+            new DoubleWraths(wraths[4], wraths[5])
+        );
+        return doubleWrathsArray;
+    }
+    addingGateInteraction(wraths: Wrath[]) {
+        wraths[0].wrathInteraction = new WrathInteraction(InteractionalScoreComponent.MULTIPLY, 4);
+        wraths[1].wrathInteraction = new WrathInteraction(InteractionalScoreComponent.MINUS, 1);
+        wraths[2].wrathInteraction = new WrathInteraction(InteractionalScoreComponent.PLUS, 2);
+        wraths[3].wrathInteraction = new WrathInteraction(InteractionalScoreComponent.DIVIDE, 2);
+        wraths[4].wrathInteraction = new WrathInteraction(InteractionalScoreComponent.DIVIDE, 5);
+        wraths[5].wrathInteraction = new WrathInteraction(InteractionalScoreComponent.MULTIPLY, 4);
     }
 
 

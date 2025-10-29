@@ -16,6 +16,7 @@ export class BeginTutorial {
     private readonly _arrow: Mesh;
     private readonly _tutorialText: TextMesh;
     private readonly _sceneController: SceneControlComponent;
+
     constructor(_tutorialText: TextMesh, _sceneController: SceneControlComponent) {
         this._sceneController = _sceneController;
         this._fingerMaterial.map = this._textureLoader.load("fingerIcon.png");

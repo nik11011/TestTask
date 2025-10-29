@@ -3,24 +3,30 @@ import {UIManagerComponent} from "../UIManagerComponent";
 import {TextMesh, updateTextMesh} from "../Font3DComponent";
 import {Player} from "../InteractiveObjects/Player";
 import TWEEN from "@tweenjs/tween.js";
-import {Mesh} from "three";
+import {Mesh, MeshBasicMaterial, PlaneGeometry, TextureLoader} from "three";
 
 export class EndGameTutorial {
+    private readonly _textureLoader: TextureLoader = new TextureLoader;
     private readonly _sceneController: SceneControlComponent;
     private readonly _uiManager: UIManagerComponent;
-    private readonly _finger: Mesh;
     private readonly _scoreText: TextMesh;
     private readonly _textPlane: Mesh;
     private readonly _player: Player;
+    private readonly _fingerPlaneGeometry: PlaneGeometry = new PlaneGeometry(0.3,0.3)
+    private readonly _fingerMaterial: MeshBasicMaterial = new MeshBasicMaterial;
+    private readonly _finger: Mesh;
+
     constructor(sceneController: SceneControlComponent,
                 uiManager: UIManagerComponent,
-                finger: Mesh,
                 scoreText: TextMesh,
                 textPlane: Mesh,
                 player: Player) {
+        this._fingerMaterial.map = this._textureLoader.load("fingerIcon.png");
+        this._fingerMaterial.transparent = true;
+        this._fingerMaterial.alphaTest = 0.1;
+        this._finger= new Mesh(this._fingerPlaneGeometry, this._fingerMaterial);
         this._sceneController=sceneController;
         this._uiManager = uiManager;
-        this._finger = finger;
         this._scoreText = scoreText;
         this._textPlane = textPlane;
         this._player = player;
