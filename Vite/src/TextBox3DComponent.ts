@@ -19,12 +19,7 @@ export class TextBox3DComponent {
         this.text.scale.y = 0.1;
         this.text.scale.z = 0.000001;
     }
-
-    private _scaleTextBoxSet(x:number, y:number): void{
-        this._scaleTextSet(x,y);
-        this.textBox.scale.x *= x;
-        this.textBox.scale.x *= x;
-    }
+    
     private _scaleTextSet(x:number, y:number): void{
         this.text.scale.x *= x;
         this.text.scale.y *= y;
