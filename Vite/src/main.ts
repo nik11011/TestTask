@@ -33,7 +33,6 @@ let sceneController = new SceneControlComponent();
 let audioControl = new AudioControlComponent();
 
 audioControl.loadSounds();
-let textureLoader = new THREE.TextureLoader();
 
 NormalizeBGTexture(canvasAspect);
 const renderer = new THREE.WebGLRenderer({
@@ -85,19 +84,6 @@ let restartButton = new TextBox3DComponent(
     await createTextMesh("Restart", 1, "#249500"),
     '#baff93');
 
-let textureFinger: THREE.Texture;
-textureFinger = await textureLoader.loadAsync("fingerIcon.png");
-let fingerPlaneGeometry = new THREE.PlaneGeometry(0.5,0.5);
-let fingerMaterial = new THREE.MeshBasicMaterial({
-    map: textureFinger,
-    transparent:true
-});
-
-let finger = new THREE.Mesh(
-    fingerPlaneGeometry,
-    fingerMaterial
-);
-finger.scale.set(0.5,0.5,0.5);
 let tutorialText = await createTextMesh("Touch and swipe !", 1, "#000000");
 tutorialText.scale.set(
     0.1, 0.1, 0.00001
@@ -235,7 +221,7 @@ function run(speed:number) {
     else {
         player.playerModel.position.z -= speed * fixedDelta;
         glueCameraTo(player.playerModel, sceneController.camera);
-        if (audioControl.volume) {
+        if (audioControl.volume && !audioControl.stepSound.isPlaying) {
             audioControl.stepSound.play();
         } else {
             audioControl.stepSound.pause();
@@ -284,13 +270,4 @@ window.addEventListener('touchmove', inputManager.onTouchMove);
 window.addEventListener('mousemove', inputManager.onMouseMove);
 window.addEventListener('mousedown', inputManager.onClick);
 window.addEventListener('touchstart', inputManager.onClick);
-
-function disableZoom() {
-    const viewport = document.querySelector("meta[name=viewport]");
-    if (viewport) {
-        viewport.setAttribute("content", "user-scalable=no");
-    }
-}
-
-disableZoom();
 
