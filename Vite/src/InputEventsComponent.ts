@@ -49,9 +49,20 @@ export class InputEventsComponent {
 
 
     public onTouchStart(event: TouchEvent): void {
-        this._startX = event.touches[0].clientX;
-        this._currentX = this._startX;
-        this.moving = true;
+        if (this.firstTouch == false) {
+            this.firstTouch = true;
+            this._uiManager.scoreText.scale.set(0.1,0.1,0.0001);
+            updateTextMesh(this._uiManager.scoreText, "Score");
+
+            this._player.replaceModel(this._playerRun);
+            this._sceneController.scene.add(this._player.playerModel);
+            this._animationManager.changeAnimation(this._player.playerModel);
+            this._animationManager.playAnimation();
+        }
+            this._startX = event.touches[0].clientX;
+            this._currentX = this._startX;
+            this.moving = true;
+            this.onClick(event);
     }
 
     public onTouchMove(event: TouchEvent): void {
@@ -118,17 +129,9 @@ export class InputEventsComponent {
                 location.reload();
             }
             else if(firstIntersect.object != this._uiManager.buttonSound.button && firstIntersect.object != this._uiManager.restartButton.textBox)
-                if (this._player.win == 0)
-                    if (this.firstTouch == false) {
-                        this.firstTouch = true;
-                        this._uiManager.scoreText.scale.set(0.1,0.1,0.0001);
-                        updateTextMesh(this._uiManager.scoreText, "Score");
-
-                        this._player.replaceModel(this._playerRun);
-                        this._sceneController.scene.add(this._player.playerModel);
-                        this._animationManager.changeAnimation(this._player.playerModel);
-                        this._animationManager.playAnimation();
-                    }
+                if (this._player.win == 0){
+                    if (!this.firstTouch ) return
+                }
         }
     }
 }

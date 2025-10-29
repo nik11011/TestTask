@@ -257,6 +257,7 @@ async function createIteractionObject() {
     await sceneController.loadBombArray();
     await sceneController.loadWrathArray();
 }
+window.addEventListener('touchstart', inputManager.onClick);
 window.addEventListener('touchstart', inputManager.onTouchStart);
 window.addEventListener('touchend', inputManager.onTouchEnd);
 window.addEventListener('mousedown', inputManager.onMouseDown);
@@ -264,5 +265,5 @@ window.addEventListener('mouseup', inputManager.onMouseUp);
 window.addEventListener('touchmove', inputManager.onTouchMove);
 window.addEventListener('mousemove', inputManager.onMouseMove);
 window.addEventListener('mousedown', inputManager.onClick);
-window.addEventListener('touchstart', inputManager.onClick);
+
 
