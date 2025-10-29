@@ -215,7 +215,8 @@ function run(speed:number) {
     else {
         player.playerModel.position.z -= speed * fixedDelta;
         glueCameraTo(player.playerModel, sceneController.camera);
-        if (audioControl.volume && !audioControl.stepSound.isPlaying) {
+        if (audioControl.volume) {
+            audioControl.stepSound.pause(); 
             audioControl.stepSound.play();
         } else {
             audioControl.stepSound.pause();
