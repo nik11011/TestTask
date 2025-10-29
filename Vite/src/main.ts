@@ -188,7 +188,9 @@ function update(){
         }
         else secondAfterFinal+=fixedDelta;
     }
-    endGame.tutorial();
+    if(player.win!=0 || player.playerDeath==true) {
+        endGame.tutorial();
+    }
     if (!inputManager.moving) {
         player.playerModel.rotation.y += (targetRotate - player.playerModel.rotation.y) * 0.5;
     }

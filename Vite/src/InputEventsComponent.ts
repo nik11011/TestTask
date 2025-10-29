@@ -75,6 +75,16 @@ export class InputEventsComponent {
     }
 
     public onMouseDown(event: MouseEvent): void {
+        if (this.firstTouch == false) {
+            this.firstTouch = true;
+            this._uiManager.scoreText.scale.set(0.1,0.1,0.0001);
+            updateTextMesh(this._uiManager.scoreText, "Score");
+
+            this._player.replaceModel(this._playerRun);
+            this._sceneController.scene.add(this._player.playerModel);
+            this._animationManager.changeAnimation(this._player.playerModel);
+            this._animationManager.playAnimation();
+        }
         this._startX = event.clientX;
         this._currentX = this._startX;
         this.moving = true;
