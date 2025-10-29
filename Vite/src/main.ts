@@ -1,9 +1,6 @@
 import * as THREE from 'three';
 import {Player} from './InteractiveObjects/Player';
 import {AssetLoaderComponent} from "./AssetLoaderComponent";
-import {Coin} from "./InteractiveObjects/Coin";
-import {Bomb} from "./InteractiveObjects/Bomb";
-import {Wrath} from "./InteractiveObjects/Wrath";
 import {ExplosiveComponent} from "./ExplosiveComponent";
 import {createTextMesh, updateTextMesh} from "./Font3DComponent";
 import {UILayoutComponent} from "./UILayoutComponent";
@@ -60,11 +57,8 @@ scoreText.addToScene(sceneController.scene);
 createGameScene();
 sceneController.camera.add(audioControl.listener);
 const assetLoader = new AssetLoaderComponent();
-let coins = new Array<Coin>();
-let bombs = new Array<Bomb>();
-let wraths = new Array<Wrath>();
 await createIteractionObject();
-sceneController.addingGateInteraction(wraths);
+sceneController.addingGateInteraction();
 
 const {playerDance, playerRun, playerIdle} = await assetLoader.loadAnimation();
 player.replaceModel(playerIdle)
@@ -117,7 +111,7 @@ let inputManager = new InputEventsComponent(
     playerRun,
     animationManager
 );
-const doubleWrathsArray = sceneController.fillDoubleWrathsInteraction(wraths);
+const doubleWrathsArray = sceneController.fillDoubleWrathsInteraction(sceneController.wraths);
 uiManager.sizeOnScreen();
 update();
 function update(){
@@ -125,11 +119,11 @@ function update(){
     let delta = clock.getDelta();
     accumulatedTime += delta;
     accumulatedTime -= fixedDelta;
-    tutorial.Tutorial(inputManager.firstTouch, fixedDelta);
+    tutorial.tutorial(inputManager.firstTouch);
     inputManager.moveToSide(inputManager.firstTouch, targetRotate, fixedDelta);
     if (player.playerDeath == false){
-        for(let bomb of bombs){
-            if (bomb.OnTrigger(player.playerModel)) {
+        for(let bomb of sceneController.bombs){
+            if (bomb.onTrigger(player.playerModel)) {
                 audioControl.playLoseSounds(player.playerDeath);
                 removeObject(player.playerModel);
                 removeObject(bomb.model);
@@ -161,9 +155,9 @@ function update(){
             inputManager.sideMoveSpeed = 0;
         }
     }
-    for (let coin of coins) {
-        coin.AnimationRotate(fixedDelta * 10);
-        if (coin.OnTrigger(player.playerModel)){
+    for (let coin of sceneController.coins) {
+        coin.animationRotate(fixedDelta * 10);
+        if (coin.onTrigger(player.playerModel)){
             audioControl.playCoinTake();
             player.score += 1;
             coin.interactionalZone = 0;
@@ -171,11 +165,11 @@ function update(){
             removeObject(coin.model);
             }
         }
-    for (let wrath of wraths) {
-        if (wrath.OnEnterInWrath(player.playerModel)){
+    for (let wrath of sceneController.wraths) {
+        if (wrath.onEnterInWrath(player.playerModel)){
             player.score = wrath.wrathInteraction.doInteraction(player.score);
             updateTextMesh(scoreText.text, `${player.score}`)
-            audioControl.WrathSoundPlay();
+            audioControl.wrathSoundPlay();
             removeObject(wrath.model);
             updateTextMesh(wrath.textMesh, "");
         }
@@ -258,9 +252,9 @@ function PreparationScene() {
 
 window.addEventListener('resize', uiManager.sizeOnScreen);
 async function createIteractionObject() {
-    await sceneController.loadCoinArray(coins);
-    await sceneController.loadBombArray(bombs);
-    await sceneController.loadWrathArray(wraths);
+    await sceneController.loadCoinArray();
+    await sceneController.loadBombArray();
+    await sceneController.loadWrathArray();
 }
 window.addEventListener('touchstart', inputManager.onTouchStart);
 window.addEventListener('touchend', inputManager.onTouchEnd);

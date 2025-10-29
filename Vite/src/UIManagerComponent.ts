@@ -46,11 +46,11 @@ export class UIManagerComponent {
 
 
     UIpositioner(buttonSoundPos: { x: number; y: number; z: number }, scoreTextPos: {x: number; y: number; z: number}) {
-        this.scoreTextPosition(scoreTextPos);
-        this.buttonSoundPosition(buttonSoundPos);
+        this._scoreTextPosition(scoreTextPos);
+        this._buttonSoundPosition(buttonSoundPos);
     }
 
-    private scoreTextPosition(scoreTextPos: { x: number; y: number; z: number }) {
+    private _scoreTextPosition(scoreTextPos: { x: number; y: number; z: number }) {
         this.scoreText.position.set(
             this._sceneController.camera.position.x + scoreTextPos.x,
             scoreTextPos.y,
@@ -69,7 +69,7 @@ export class UIManagerComponent {
         )
     }
 
-    private buttonSoundPosition(buttonSoundPos: { x: number; y: number; z: number }) {
+    private _buttonSoundPosition(buttonSoundPos: { x: number; y: number; z: number }): void {
         this.buttonSound.button.position.set(
             this._sceneController.camera.position.x + buttonSoundPos.x,
             this._sceneController.camera.position.y + buttonSoundPos.y,
@@ -81,12 +81,12 @@ export class UIManagerComponent {
             this._sceneController.camera.position.z,
         )
     }
-    sizeOnScreen() {
+    public sizeOnScreen(): void {
         if(window.innerWidth>window.innerHeight){
-            this.resizeForWidthScreen();
+            this._resizeForWidthScreen();
         }
         else if(window.innerHeight>=window.innerWidth) {
-            this.resizeForHeightScreen();
+            this._resizeForHeightScreen();
         }
         this.buttonSound.button.scale.set(this.uiLayout.scaleButtonSound, this.uiLayout.scaleButtonSound, 0.1);
         this.UIpositioner(this.uiLayout.buttonSoundPosition, this.uiLayout.scoreTextPosition);
@@ -95,7 +95,7 @@ export class UIManagerComponent {
         this._renderer.setSize(window.innerWidth, window.innerHeight)
     }
 
-    private resizeForWidthScreen() {
+    private _resizeForWidthScreen(): void {
         this.uiLayout.scoreTextPosition = {
             x: -(window.innerWidth/1000)+0.4,
             y: 1.5,
@@ -129,7 +129,7 @@ export class UIManagerComponent {
         this.rePosRestartBtn()
     }
 
-    private resizeForHeightScreen() {
+    private _resizeForHeightScreen() {
         this.uiLayout.scoreTextPosition = {
             x: 0,
             y: 1.7,
@@ -163,7 +163,7 @@ export class UIManagerComponent {
         this.rePosRestartBtn()
     }
 
-    rePosInstallBtn() {
+    public rePosInstallBtn(): void {
         this.installButton.text.scale.set(this.uiLayout.scaleButton, this.uiLayout.scaleButton, 0.0001);
         this.installButton.textBox.position.x = this._sceneController.camera.position.x+this.uiLayout.installButtonPosition.x;
         this.installButton.textBox.position.z = this._sceneController.camera.position.z+this.uiLayout.installButtonPosition.z;
@@ -173,12 +173,12 @@ export class UIManagerComponent {
         this.installButton.text.position.y = this.installButton.textBox.position.y;
     }
 
-    createInstallButton(){
+    public createInstallButton(): void{
         this.rePosInstallBtn();
         this.installButton.addToScene(this._sceneController.scene);
     }
 
-    rePosRestartBtn() {
+    public rePosRestartBtn(): void {
         this.restartButton.text.scale.set(this.uiLayout.scaleButton, this.uiLayout.scaleButton, 0.0001);
         this.restartButton.textBox.position.x = this._sceneController.camera.position.x+this.uiLayout.restartButtonPosition.x;
         this.restartButton.textBox.position.z = this._sceneController.camera.position.z+this.uiLayout.restartButtonPosition.z;
@@ -188,7 +188,7 @@ export class UIManagerComponent {
         this.restartButton.text.position.y = this.restartButton.textBox.position.y;
     }
 
-    createRestartButton() {
+    public createRestartButton(): void {
         this.rePosRestartBtn();
         this.restartButton.addToScene(this._sceneController.scene);
     }

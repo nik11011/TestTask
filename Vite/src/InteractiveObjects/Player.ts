@@ -10,7 +10,7 @@ export class Player {
     constructor(){
     }
 
-    replaceModel(model){
+    public replaceModel(model: any){
         if (this.playerModel!=null) {
             this.playerModel.clear();
             model.position.z = this.playerModel.position.z;

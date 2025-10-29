@@ -14,7 +14,7 @@ export class AudioControlComponent {
     private readonly _loseMusic: Audio = new Audio(this.listener);
     private readonly _winMusic: Audio = new Audio(this.listener);
     private readonly _wrathSound: Audio = new Audio(this.listener);
-    loadSounds() {
+    public loadSounds(): void {
         this._audioLoader.load('loopTrack.mp3', (buffer) => {
             this._loopSound.setBuffer(buffer);
             this._loopSound.setLoop(true);
@@ -46,7 +46,7 @@ export class AudioControlComponent {
             this._wrathSound.setVolume(0.5);
         });
     }
-    playLoseSounds(playerDeath:boolean) {
+    public playLoseSounds(playerDeath:boolean): void {
         if (playerDeath == false && this.volume == true){
             this._bombHopSound.play();
             this._loopSound.setVolume(0);
@@ -62,7 +62,7 @@ export class AudioControlComponent {
         }
     }
 
-    playWinSounds(win: number) {
+    public playWinSounds(win: number): void {
         if (win != 0 && this.volume == true) {
             this._loopSound.setVolume(0);
             this._loopSound.pause();
@@ -76,7 +76,7 @@ export class AudioControlComponent {
         }
     }
 
-    playCoinTake() {
+    public playCoinTake(): void {
         if (this.volume) {
             this._coinHopSound.play();
         }
@@ -86,14 +86,14 @@ export class AudioControlComponent {
     }
 
 
-    WrathSoundPlay() {
+    public wrathSoundPlay(): void {
         if (this.volume) {
             this._wrathSound.play();
         } else {
             this._wrathSound.pause();
         }
     }
-    playTracks(player:Player) {
+    public playTracks(player:Player): void {
         if (player.playerDeath == false && player.win == 0 && this.volume == true) {
             if(!this._loopSound.isPlaying) {
                 this._loopSound.play();

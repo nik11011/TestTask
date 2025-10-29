@@ -10,7 +10,7 @@ export class Coin extends InteractionalObjectComponent{
         _scene.add(this.model);
     }
 
-    AnimationRotate(_tick){
+    public animationRotate(_tick): void{
         this.model.rotation.y += _tick;
     }
 }

@@ -11,12 +11,15 @@ export class SceneControlComponent {
     public camera: PerspectiveCamera = new PerspectiveCamera(65, window.innerWidth / window.innerHeight);
     public scene: Scene = new Scene();
     private readonly _importclass: AssetLoaderComponent = new AssetLoaderComponent();
+    public readonly coins = new Array<Coin>();
+    public readonly bombs = new Array<Bomb>();
+    public readonly wraths = new Array<Wrath>();
 
     constructor() {
 
     }
 
-    createSun() {
+    public createSun(): void {
         const light = new DirectionalLight('#ffffff', 5);
         light.castShadow = true;
         light.shadow.mapSize.set(16384, 16384);
@@ -29,8 +32,8 @@ export class SceneControlComponent {
         light.position.set(5, 10, 5);
         this.scene.add(light)
     }
-    async loadWrathArray(wraths:Array<Wrath>) {
-        wraths.push(
+    public async loadWrathArray(): Promise<void> {
+        this.wraths.push(
             new Wrath(this.scene, -0.5, -4,
                 await this._importclass.importModel("Wrath.fbx"),
                 await createTextMesh("x4", 0.5, "#0004ff")),
@@ -52,7 +55,7 @@ export class SceneControlComponent {
         );
     }
 
-    fillDoubleWrathsInteraction(wraths: Wrath[]) {
+    public fillDoubleWrathsInteraction(wraths: Wrath[]): DoubleWraths[] {
         const doubleWrathsArray = new Array<DoubleWraths>(
             new DoubleWraths(wraths[0], wraths[1]),
             new DoubleWraths(wraths[2], wraths[3]),
@@ -60,18 +63,18 @@ export class SceneControlComponent {
         );
         return doubleWrathsArray;
     }
-    addingGateInteraction(wraths: Wrath[]) {
-        wraths[0].wrathInteraction = new WrathInteraction(InteractionalScoreComponent.MULTIPLY, 4);
-        wraths[1].wrathInteraction = new WrathInteraction(InteractionalScoreComponent.MINUS, 1);
-        wraths[2].wrathInteraction = new WrathInteraction(InteractionalScoreComponent.PLUS, 2);
-        wraths[3].wrathInteraction = new WrathInteraction(InteractionalScoreComponent.DIVIDE, 2);
-        wraths[4].wrathInteraction = new WrathInteraction(InteractionalScoreComponent.DIVIDE, 5);
-        wraths[5].wrathInteraction = new WrathInteraction(InteractionalScoreComponent.MULTIPLY, 4);
+    public addingGateInteraction(): void {
+        this.wraths[0].wrathInteraction = new WrathInteraction(InteractionalScoreComponent.MULTIPLY, 4);
+        this.wraths[1].wrathInteraction = new WrathInteraction(InteractionalScoreComponent.MINUS, 1);
+        this.wraths[2].wrathInteraction = new WrathInteraction(InteractionalScoreComponent.PLUS, 2);
+        this.wraths[3].wrathInteraction = new WrathInteraction(InteractionalScoreComponent.DIVIDE, 2);
+        this.wraths[4].wrathInteraction = new WrathInteraction(InteractionalScoreComponent.DIVIDE, 5);
+        this.wraths[5].wrathInteraction = new WrathInteraction(InteractionalScoreComponent.MULTIPLY, 4);
     }
 
 
-    async loadCoinArray(coins: Array<Coin>) {
-        coins.push(
+    public async loadCoinArray(): Promise<void> {
+        this.coins.push(
             new Coin(this.scene, -0.5, -1, await this._importclass.importModel("Coin_Reskin.fbx")),
             new Coin(this.scene, -0.5, -3, await this._importclass.importModel("Coin_Reskin.fbx")),
             new Coin(this.scene, +0.5, -5, await this._importclass.importModel("Coin_Reskin.fbx")),
@@ -84,8 +87,8 @@ export class SceneControlComponent {
         );
     }
 
-    async loadBombArray(bombs: Array<Bomb>) {
-        bombs.push(
+   public async loadBombArray(): Promise<void> {
+        this.bombs.push(
             new Bomb(this.scene, 0.5, -5, await this._importclass.importModel("bomb.fbx")),
             new Bomb(this.scene, 0.5, -9, await this._importclass.importModel("bomb.fbx")),
             new Bomb(this.scene, -0.5, -10, await this._importclass.importModel("bomb.fbx")),

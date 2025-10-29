@@ -48,39 +48,39 @@ export class InputEventsComponent {
     }
 
 
-    onTouchStart(event: TouchEvent) {
+    public onTouchStart(event: TouchEvent): void {
         this._startX = event.touches[0].clientX;
         this._currentX = this._startX;
         this.moving = true;
     }
 
-    onTouchMove(event: TouchEvent) {
+    public onTouchMove(event: TouchEvent): void {
         if (!this.moving) return;
         this._currentX = event.touches[0].clientX;
     }
 
-    onTouchEnd() {
+    public onTouchEnd(): void {
         this.moving = false;
     }
 
-    onMouseDown(event: MouseEvent) {
+    public onMouseDown(event: MouseEvent): void {
         this._startX = event.clientX;
         this._currentX = this._startX;
         this.moving = true;
     }
 
-    onMouseMove(event: MouseEvent) {
+    public onMouseMove(event: MouseEvent): void {
         if (!this.moving) return;
         this._currentX = event.clientX;
     }
 
 
-    onMouseUp() {
+    public onMouseUp(): void {
         this.moving = false;
     }
 
 
-    moveToSide(firstTouch:boolean, targetRotate:number, fixedDelta: number) {
+    public moveToSide(firstTouch:boolean, targetRotate:number, fixedDelta: number): void {
         if (!firstTouch) return;
         const lerpFactor = 0.1;
         this._deltaX = this._currentX - this._startX;
@@ -96,7 +96,7 @@ export class InputEventsComponent {
         if (this._player.playerModel.position.x < -1) this._player.playerModel.position.x = -1;
     }
 
-    onClick(event) {
+    public onClick(event): void {
         this._rayTouch.x = (event.clientX / window.innerWidth) * 2 - 1;
         this._rayTouch.y = -(event.clientY / window.innerHeight) * 2 + 1;
         this._raycaster.setFromCamera(this._rayTouch, this._sceneController.camera);

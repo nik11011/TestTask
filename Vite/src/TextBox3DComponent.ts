@@ -20,16 +20,16 @@ export class TextBox3DComponent {
         this.text.scale.z = 0.000001;
     }
 
-    scaleTextBoxSet(x:number, y:number){
-        this.scaleTextSet(x,y);
+    private _scaleTextBoxSet(x:number, y:number): void{
+        this._scaleTextSet(x,y);
         this.textBox.scale.x *= x;
         this.textBox.scale.x *= x;
     }
-    scaleTextSet(x:number, y:number){
+    private _scaleTextSet(x:number, y:number): void{
         this.text.scale.x *= x;
         this.text.scale.y *= y;
     }
-    addToScene(scene: Scene){
+    public addToScene(scene: Scene): void{
         scene.add(this.textBox);
         scene.add(this.text);
     }

@@ -4,15 +4,15 @@ import {updateTextMesh} from "./Font3DComponent";
 
 
 export class DoubleWraths{
-    fWrath: Wrath;
-    sWrath: Wrath;
+    private readonly fWrath: Wrath;
+    private readonly sWrath: Wrath;
 
     constructor(fWrath: Wrath, sWrath: Wrath) {
         this.fWrath = fWrath;
         this.sWrath = sWrath;
     }
 
-    removeWrath(scene:Scene){
+    public removeWrath(scene:Scene): void{
         if(this.fWrath.activatedWrath){
             scene.remove(this.sWrath.model);
             updateTextMesh(this.sWrath.textMesh, "");

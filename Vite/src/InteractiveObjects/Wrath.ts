@@ -26,7 +26,7 @@ export class Wrath extends InteractionalObjectComponent{
     }
 
 
-    OnEnterInWrath(Player: Object3D):boolean{
+    public onEnterInWrath(Player: Object3D):boolean{
         if (
             Player.position.x<=this.model.position.x+this._interactionalZoneWrathX &&
             Player.position.x>=this.model.position.x-this._interactionalZoneWrathX &&

@@ -13,7 +13,7 @@ export class InteractionalObjectComponent {
         this.model.receiveShadow = true;
     }
 
-    OnTrigger(playerModel:Object3D):boolean{
+    public onTrigger(playerModel:Object3D):boolean{
         if(
             (this.model.position.x-this.interactionalZone <= playerModel.position.x) &&
             (this.model.position.x+this.interactionalZone >= playerModel.position.x) &&

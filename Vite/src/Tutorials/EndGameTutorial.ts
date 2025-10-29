@@ -32,7 +32,7 @@ export class EndGameTutorial {
         this._player = player;
     }
 
-    realise(){
+    public realise(): void{
         this._sceneController.camera.position.z = -60;
         this._uiManager.createInstallButton();
         this._uiManager.createRestartButton();
@@ -49,7 +49,7 @@ export class EndGameTutorial {
         this._textPlane.lookAt(this._sceneController.camera.position);
     }
 
-    tutorial(){
+    public tutorial(): void{
         if (this._finger.position.x >= this._uiManager.installButton.textBox.position.x+0.1) {
             new TWEEN.Tween({x: this._finger.position.x, alpha: 0})
                 .to({ x: this._uiManager.installButton.textBox.position.x , alpha: 1.1}, 1000)

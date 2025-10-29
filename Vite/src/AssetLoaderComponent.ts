@@ -35,7 +35,7 @@ export class AssetLoaderComponent {
         return model;
     }
 
-    async loadAnimation() {
+    public async loadAnimation() {
         const playerDance = await this.importModel("Dance.fbx");
         playerDance.rotation.y = Math.PI * 0.5;
         playerDance.position.y = -0.15;

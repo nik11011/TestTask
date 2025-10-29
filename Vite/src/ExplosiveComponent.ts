@@ -14,7 +14,7 @@ export class ExplosiveComponent {
     constructor(){
         
     }
-    createExplosive(scene:THREE.Scene, _x:number, _y:number, _z:number) {
+    public createExplosive(scene:THREE.Scene, _x:number, _y:number, _z:number): void {
     const vertices = [];
     const velocities = [];
 
@@ -39,9 +39,7 @@ export class ExplosiveComponent {
     this._particles = new THREE.Points(this._geometry, this._material);
     scene.add(this._particles);
 }
-
-// Анимация
-    animate(scene:THREE.Scene) {
+    public animate(scene:THREE.Scene): void {
     const positions = this._geometry.attributes.position.array;
     const velocities = this._geometry.attributes.velocity.array;
     for (let i = 0; i < positions.length; i += 3) {

@@ -37,7 +37,7 @@ export class BeginTutorial {
         this._sceneController.scene.add(this._arrow);
     }
 
-    MoveToLeftPosition(fixedDelta:number) {
+    private _moveToLeftPosition(): void {
         if (this._fingerTutorial.position.x >= -0.5+0.1) {
             new TWEEN.Tween({x: this._fingerTutorial.position.x})
                 .to({ x: -0.5 }, 1000)
@@ -52,7 +52,7 @@ export class BeginTutorial {
     }
 
 
-    MoveToRightPosition(fixedDelta:number) {
+    private _moveToRightPosition(): void {
         if (this._fingerTutorial.position.x <= 0.5-0.1){
             new TWEEN.Tween({x: this._fingerTutorial.position.x})
                 .to({ x: 0.5}, 1000)
@@ -67,15 +67,15 @@ export class BeginTutorial {
     }
 
 
-    AnimationTutorial(fixedDelta:number) {
-        if (this.left && !this.right) this.MoveToRightPosition(fixedDelta);
-        else if (this.right && !this.left) this.MoveToLeftPosition(fixedDelta);
+    private _animationTutorial(): void {
+        if (this.left && !this.right) this._moveToRightPosition();
+        else if (this.right && !this.left) this._moveToLeftPosition();
     }
 
 
-    Tutorial(firstTouch:boolean, fixedDelta:number) {
+    public tutorial(firstTouch:boolean): void {
         if (firstTouch == false) {
-            this.AnimationTutorial(fixedDelta);
+            this._animationTutorial();
         } else {
             this._sceneController.scene.remove(this._arrow);
             this._sceneController.scene.remove(this._fingerTutorial);

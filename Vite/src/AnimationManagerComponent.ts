@@ -6,12 +6,12 @@ export class AnimationManagerComponent {
 
     constructor() {
     }
-    changeAnimation(Animation: Group<Object3DEventMap>){
+    public changeAnimation(Animation: Group<Object3DEventMap>): void{
         this.mixer = new AnimationMixer(Animation);
         this._action = this.mixer.clipAction(Animation.animations[0]);
     }
 
-    playAnimation(){
+    public playAnimation(): void{
         this._action.play();
     }
 }
